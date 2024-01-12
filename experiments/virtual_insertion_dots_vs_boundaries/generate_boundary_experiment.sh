@@ -7,12 +7,12 @@ conda activate basenji
 # Parse command line arguments, replace with custom parameters
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa" 
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
-tsv_file="/home1/smaruj/akita_utils/experiments/insert_virtual_dots_vs_boundaries/ctcf_tsv/boundary_filtered_mismatched_ctcf.tsv"
-out_dir="/scratch2/smaruj/boundary_OUT" 
-models="1 2" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
+tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/filtered_base_mouse_ctcf_boundary.tsv"
+out_dir="/scratch2/smaruj/virtual_insertion_boundaries_OUT" 
+models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8 
-max_proc=2
-processes=2
+max_proc=8
+processes=8
 
 # stats="SCD" 
 # time="1-10:00:00" 
