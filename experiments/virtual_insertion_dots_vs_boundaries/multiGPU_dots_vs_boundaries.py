@@ -222,27 +222,17 @@ def main():
     jobs = []
     for pi in range(options.processes):
         if not options.restart or not job_started(options, pi):
-            if options.cpu:
-                cmd = 'eval "$(conda shell.bash hook)";'
-                cmd += "conda activate basenji;"
-                cmd += (
-                    "module load gcc/8.3.0; module load cudnn/8.0.4.30-11.0;"
-                )
-            else:
-                cmd = 'eval "$(conda shell.bash hook)";'
-                cmd += "conda activate basenji-numba2;"
-                cmd += (
-                    "module load gcc/8.3.0; module load cudnn/8.0.4.30-11.0;"
-                )
-
+            cmd = 'eval "$(conda shell.bash hook)";'
+            cmd += 'conda activate basenji_py3.9_tf2.15;'
             cmd += (
-                " ${SLURM_SUBMIT_DIR}/virtual_symmetric_experiment_dots_vs_boundaries.py %s %s %d"
+                'python ${SLURM_SUBMIT_DIR}/virtual_symmetric_experiment_dots_vs_boundaries.py %s %s %d;'
                 % (
                     options_pkl_file,
                     " ".join(args),
                     pi,
                 )
             )
+            cmd += 'conda deactivate;'
 
             name = "%s_p%d" % (options.name, pi)
             outf = "%s/job%d.out" % (options.out_dir, pi)
@@ -270,7 +260,7 @@ def main():
         max_proc=options.max_proc,
         verbose=False,
         launch_sleep=10,
-        update_sleep=60,
+        update_sleep=10,
     )
 
 
