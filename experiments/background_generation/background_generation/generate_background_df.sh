@@ -7,7 +7,7 @@ conda activate basenji_py3.9_tf2.15
 # Define variables
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa"
 seq_bed_file="/project/fudenber_735/tensorflow_models/akita/v2/data/mm10/sequences.bed"
-output_filename="./50seqs_GCuniform_maxSCD35.tsv"
+output_filename="./input_data/50seqs_GCuniform_maxSCD35.tsv"
 SCD_threshold="35"
 shuffle_parameter="8"
 ctcf_detection_threshold="8"
