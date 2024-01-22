@@ -9,12 +9,12 @@ genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa"
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
 tsv_file="/home1/smaruj/akitaX1-analyses/input_data/preprocess_CTCFs/output/CTCFs_jaspar_filtered_mm10.tsv"
 chrom_sizes="/project/fudenber_735/genomes/mm10/mm10.fa.sizes"
-out_dir="/scratch2/smaruj/disruption_by_permutation" 
-models="1" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
+out_dir="/scratch2/smaruj/genomic_disruption" 
+models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8 
 max_proc=8
 processes=8
-stats="SCD,SSD,INS-16,INS-64"
+stats="SCD,INS-16,INS-64"
 time="0-01:00:00" 
 # constraint="[xeon-6130|xeon-2640v4]"
 
@@ -67,9 +67,3 @@ done
 
 echo All jobs submitted
 
-
-
-# python genomic_disruption_by_permutation.py /project/fudenber_735/tensorflow_models/akita/v2/models/f1c0/train/params.json /project/fudenber_735/tensorflow_models/akita/v2/models/f1c0/train/model1_best.h5 ./test_10.tsv -f /project/fudenber_735/genomes/mm10/mm10.fa -o ./OUT -c /project/fudenber_735/genomes/mm10/mm10.fa.sizes --stats SCD,SSD,INS-16,INS-64
-
-
-# python multiGPU-genomic_disruption_by_permutation.py /project/fudenber_735/tensorflow_models/akita/v2/models/f1c0/train/params.json /project/fudenber_735/tensorflow_models/akita/v2/models/f1c0/train/model1_best.h5 ./test_100.tsv -f /project/fudenber_735/genomes/mm10/mm10.fa -o ./OUT -c /project/fudenber_735/genomes/mm10/mm10.fa.sizes --stats SCD,SSD,INS-16,INS-64 --batch-size 8 -p 2 --max_proc 2 --name exp

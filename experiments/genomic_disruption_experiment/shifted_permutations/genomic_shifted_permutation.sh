@@ -15,7 +15,7 @@ shifts="-10 -1" # this is a string with space seperated shifts, examples "-10000
 batch_size=8 
 max_proc=8
 processes=8
-stats="SCD,SSD,INS-16,INS-64"
+stats="SCD,INS-16,INS-64"
 time="0-01:00:00" 
 # constraint="[xeon-6130|xeon-2640v4]"
 
