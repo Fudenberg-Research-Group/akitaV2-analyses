@@ -61,7 +61,7 @@ import numpy as np
 import tensorflow as tf
 from basenji import seqnn, stream
 
-from akita_utils.seq_gens import central_permutation_rc_seqs_gen
+from akita_utils.seq_gens import central_permutation_seqs_gen
 from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
 from akita_utils.utils import split_df_equally
 
@@ -279,7 +279,7 @@ def main():
 
     preds_stream = stream.PredStreamGen(
         seqnn_model,
-        central_permutation_rc_seqs_gen(seq_coords_df, genome_open, chrom_sizes_table),
+        central_permutation_seqs_gen(seq_coords_df, genome_open, chrom_sizes_table, revcomp=True),
         batch_size,
     )
 
