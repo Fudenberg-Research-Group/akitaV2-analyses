@@ -22,10 +22,10 @@ insertion_df = insertion_df.rename(columns={"SCD": "insertion_SCD"})
 
 df_collected = pd.concat(
     [
-        disruption_df["chrom"],
-        disruption_df["end"],
-        disruption_df["start"],
-        disruption_df["strand"],
+        insertion_df["chrom"],
+        insertion_df["end"],
+        insertion_df["start"],
+        insertion_df["strand"],
         disruption_df["disruption_SCD"],
         insertion_df["insertion_SCD"]
     ],
