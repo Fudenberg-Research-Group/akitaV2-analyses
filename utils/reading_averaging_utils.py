@@ -95,7 +95,7 @@ def average_stat_over_backgrounds(
     else:
         target_indices = 5
 
-    num_sites = len(df) // 10
+    num_sites = len(df) // num_backgrounds
     output_df = df[columns_to_keep][:num_sites]
 
     for bg_index in range(num_backgrounds):
