@@ -57,7 +57,7 @@ def main():
     parser.add_option(
         "--input-tsv-file",
         dest="input_tsv_file",
-        default="/home1/smaruj/akitaX1-analyses/input_data/preprocess_CTCFs/output/CTCFs_jaspar_filtered_mm10.tsv",
+        default="/home1/smaruj/akitaX1-analyses/input_data/select_strong_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv",
         help="Specify path to the file with coordinates of CTCF-binding sites in the tested genome",
     )
     parser.add_option(
