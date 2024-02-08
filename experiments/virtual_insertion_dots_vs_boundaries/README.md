@@ -5,6 +5,9 @@ This directory contains scripts and data for conducting the **feature-specific i
 
 ### 1. **Data Generation:**
 
+`python generate.py --boundary-output-filename input_data/boundary_CTCFs_jaspar_filtered_mm10_strong.tsv --dot-output-filename input_data/dot_CTCFs_jaspar_filtered_mm10_strong.tsv`
+
+
 - **Generating Input TSV:**
   - Use `generate_tsv_dot_boundary_scenario.py` to generate a TSV file containing CTCF coordinates. This file serves as input for subsequent experiments.
   - Output: TSV file with CTCF coordinates (found in `/input_data`).
