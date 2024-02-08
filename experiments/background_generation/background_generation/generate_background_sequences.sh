@@ -60,7 +60,7 @@ do
     name+="${model}";
     
     # running multiGPU script
-    python multiGPU-generate_background_sequences.py "${params_file}" "${model_file}" "${tsv_file}" -f "${genome_fasta}" -o "${this_out_dir}" --max_iters "$max_iters" --batch-size "${batch_size}" -p "${processes}" --max_proc "${max_proc}" --name "${name}" -m -s
+    python multiGPU-generate_background_sequences.py "${params_file}" "${model_file}" "${tsv_file}" -f "${genome_fasta}" -o "${this_out_dir}" --max_iters "$max_iters" --batch-size "${batch_size}" -p "${processes}" --max_proc "${max_proc}" --name "${name}" -m -s --time "${time}"
     sleep 15
 done
 
