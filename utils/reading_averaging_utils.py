@@ -480,6 +480,82 @@ def read_and_average_shuffling_exp(
     return stat_collected
 
 
+def read_average_dot_boundary(data_dir, model_index, head_index=1, ignore_keys=[], columns_to_keep=["chrom", "end", "start", "strand"]):
+
+    # reading and averaging data for model 0 only, boundaries
+    df_B = h5_to_df(data_dir+f"/model_{model_index}_boundary.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
+    df_B_tg = average_stat_over_targets(df_B, model_index=model_index, head_index=head_index, stat="SCD")
+    df_B_tgbg = average_stat_over_backgrounds(df_B_tg, model_index=model_index, head_index=head_index, stat="SCD",
+                                            columns_to_keep=columns_to_keep)
+
+    df_B_tgbg = df_B_tgbg.rename(columns={f"SCD_m{model_index}": f"SCD_m{model_index}_B"})
+
+    # reading and averaging data for model 0 only, dots
+    df_D = h5_to_df(data_dir+f"/model_{model_index}_dot.h5", ["SCD", "dot-score", "cross-score", "x-score"], 
+                       ignore_keys=ignore_keys, 
+                       average=False)
+    # SCD
+    df_D_tg = average_stat_over_targets(df_D, model_index=model_index, head_index=head_index, stat="SCD")
+    df_D_tgbg = average_stat_over_backgrounds(df_D_tg, model_index=model_index, head_index=head_index, stat="SCD",
+                                            columns_to_keep=columns_to_keep)
+    df_D_tgbg = df_D_tgbg.rename(columns={f"SCD_m{model_index}": f"SCD_m{model_index}_D"})
+
+    # dot-score
+    df_D_tg_dot = average_stat_over_targets(df_D, model_index=model_index, head_index=head_index, stat="dot-score")
+    df_D_tgbg_dot = average_stat_over_backgrounds(df_D_tg_dot, model_index=model_index, head_index=head_index, stat="dot-score",
+                                            columns_to_keep=columns_to_keep)
+
+    # cross-score
+    df_D_tg_cross = average_stat_over_targets(df_D, model_index=model_index, head_index=head_index, stat="cross-score")
+    df_D_tgbg_cross = average_stat_over_backgrounds(df_D_tg_cross, model_index=model_index, head_index=head_index, stat="cross-score",
+                                            columns_to_keep=columns_to_keep)
+
+    # x-score
+    df_D_tg_x = average_stat_over_targets(df_D, model_index=model_index, head_index=head_index, stat="x-score")
+    df_D_tgbg_x = average_stat_over_backgrounds(df_D_tg_x, model_index=model_index, head_index=head_index, stat="x-score",
+                                            columns_to_keep=columns_to_keep)
+
+    # creating summary df
+    summary_df = df_B_tgbg.drop(columns= [f"SCD_bg{x}" for x in range(10)])
+    summary_df[f"SCD_m{model_index}_D"] = df_D_tgbg[f"SCD_m{model_index}_D"]
+    summary_df[f"dot-score_m{model_index}"] = df_D_tgbg_dot[f"dot-score_m{model_index}"]
+    summary_df[f"cross-score_m{model_index}"] = df_D_tgbg_cross[f"cross-score_m{model_index}"]
+    summary_df[f"x-score_m{model_index}"] = df_D_tgbg_x[f"x-score_m{model_index}"]
+
+    del df_D_tgbg
+    del df_D_tgbg_dot
+    del df_D_tgbg_cross
+    del df_D_tgbg_x
+
+    return summary_df
+
+
+def summarize_average_models_dot_boundary(data_dir, models_number, head_index=1, ignore_keys=[], columns_to_keep=["chrom", "end", "start", "strand"]):
+    df_summary = read_average_dot_boundary(data_dir, model_index=0, head_index=head_index,
+                                          ignore_keys=ignore_keys, 
+                                          columns_to_keep=columns_to_keep)
+    
+    for model_index in range(1, models_number):
+        model_df = read_average_dot_boundary(data_dir, model_index=model_index,
+                                            head_index=head_index,
+                                          ignore_keys=ignore_keys, 
+                                          columns_to_keep=columns_to_keep)
+        df_summary = pd.concat([df_summary, 
+                               model_df[f"SCD_m{model_index}_B"],
+                               model_df[f"SCD_m{model_index}_D"],
+                               model_df[f"dot-score_m{model_index}"],
+                               model_df[f"cross-score_m{model_index}"],
+                               model_df[f"x-score_m{model_index}"]], axis=1)
+    
+    df_summary["SCD_B"] = df_summary[[f"SCD_m{model_index}_B" for model_index in range(models_number)]].mean(axis=1)
+    df_summary["SCD_D"] = df_summary[[f"SCD_m{model_index}_D" for model_index in range(models_number)]].mean(axis=1)
+    df_summary["dot-score"] = df_summary[[f"dot-score_m{model_index}" for model_index in range(models_number)]].mean(axis=1)
+    df_summary["cross-score"] = df_summary[[f"cross-score_m{model_index}" for model_index in range(models_number)]].mean(axis=1)
+    df_summary["x-score"] = df_summary[[f"x-score_m{model_index}" for model_index in range(models_number)]].mean(axis=1)
+
+    return df_summary
+
+
 #########################
 
 
