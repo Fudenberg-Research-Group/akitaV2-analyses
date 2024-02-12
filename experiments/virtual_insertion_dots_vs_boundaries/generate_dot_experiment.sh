@@ -2,20 +2,20 @@
 
 # Conda env activation
 eval "$(conda shell.bash hook)"
-conda activate basenji
+conda activate basenji_py3.9_tf2.15
 
 # Parse command line arguments, replace with custom parameters
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa" 
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
-tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/filtered_base_mouse_ctcf_dot.tsv"
-out_dir="/scratch2/smaruj/virtual_insertion_dots_OUT" 
-models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
+# tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/boundary_windows/dot_CTCFs_jaspar_filtered_mm10_strong.tsv" # for boundary windows
+tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/dot_windows/dot_CTCFs_jaspar_filtered_mm10_strong_dots.tsv" #for dot windows
+out_dir="/scratch2/smaruj/virtual_insertion_dots_DW" 
+models="7" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8 
-max_proc=8
-processes=8
+max_proc=2
+processes=2
 stats="SCD,dot-score,cross-score,x-score"
-
-# time="1-10:00:00" 
+time="0-01:00:00" 
 # constraint="[xeon-6130|xeon-2640v4]"
 
 # Check if genome_fasta file exists
@@ -61,7 +61,7 @@ do
     name+="${model}";
     
     # running multiGPU script
-    python multiGPU_dots_vs_boundaries.py "${params_file}" "${model_file}" "${tsv_file}" -f "${genome_fasta}" -o "${this_out_dir}"  --stats "${stats}" --batch-size "${batch_size}" -p "${processes}" --max_proc "${max_proc}" --name "${name}"
+    python multiGPU_dots_vs_boundaries.py "${params_file}" "${model_file}" "${tsv_file}" -f "${genome_fasta}" -o "${this_out_dir}" --stats "${stats}" --batch-size "${batch_size}" -p "${processes}" --max_proc "${max_proc}" --name "${name}" --time "${time}"
     sleep 15
 done
 
