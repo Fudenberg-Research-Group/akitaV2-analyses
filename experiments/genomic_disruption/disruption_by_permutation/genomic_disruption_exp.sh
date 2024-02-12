@@ -61,7 +61,7 @@ do
     name+="${model}";
     
     # running multiGPU script
-    python multiGPU-genomic_disruption_by_permutation.py "${params_file}" "${model_file}" "${tsv_file}" -f "${genome_fasta}" -o "${this_out_dir}" -c "${chrom_sizes}" --stats "${stats}" --batch-size "${batch_size}" -p "${processes}" --max_proc "${max_proc}" --name "${name}"
+    python multiGPU-genomic_disruption_by_permutation.py "${params_file}" "${model_file}" "${tsv_file}" -f "${genome_fasta}" -o "${this_out_dir}" -c "${chrom_sizes}" --stats "${stats}" --batch-size "${batch_size}" -p "${processes}" --max_proc "${max_proc}" --name "${name}" --time "${time}"
     sleep 15
 done
 

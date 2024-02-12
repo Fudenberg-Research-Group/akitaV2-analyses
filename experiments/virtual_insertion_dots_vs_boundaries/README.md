@@ -5,9 +5,25 @@ This directory contains scripts and data for conducting the **feature-specific i
 
 ### 1. **Data Generation:**
 
+Windows overlapping boundaries:
+`python generate_tsv_dot_boundary_scenario.py --boundary-output-filename input_data/boundary_CTCFs_jaspar_filtered_mm10_strong.tsv --dot-output-filename input_data/dot_CTCFs_jaspar_filtered_mm10_strong.tsv`
+
+Windows overlapping dots:
+`python generate_tsv_dot_boundary_scenario.py --input-tsv-file /home1/smaruj/akitaX1-analyses/input_data/preprocess_dot_CTCFs/output/CTCFs_jaspar_filtered_dots_mm10.tsv --boundary-output-filename input_data/boundary_CTCFs_jaspar_filtered_mm10_strong_dots.tsv --dot-output-filename input_data/dot_CTCFs_jaspar_filtered_mm10_strong_dots.tsv`
+
 - **Generating Input TSV:**
   - Use `generate_tsv_dot_boundary_scenario.py` to generate a TSV file containing CTCF coordinates. This file serves as input for subsequent experiments.
   - Output: TSV file with CTCF coordinates (found in `/input_data`).
+
+# boundary windows
+`python collect_jobs_and_clean.py /scratch2/smaruj/virtual_insertion_boundaries_OUT_m0 -d /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/boundary_CTCFs_jaspar_filtered_mm10_strong.tsv -v -l`
+
+`python collect_jobs_and_clean.py /scratch2/smaruj/virtual_insertion_dots_OUT_m0 -d /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/dot_CTCFs_jaspar_filtered_mm10_strong.tsv -v -l`
+
+# dot windows
+`python collect_jobs_and_clean.py /scratch2/smaruj/virtual_insertion_boundaries_DW_m0 -d /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/boundary_CTCFs_jaspar_filtered_mm10_strong_dots.tsv -v -l`
+
+`python collect_jobs_and_clean.py /scratch2/smaruj/virtual_insertion_boundaries_DW_m0 -d /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_dots_vs_boundaries/input_data/boundary_CTCFs_jaspar_filtered_mm10_strong_dots.tsv -v -l`
 
 ### 2. **Virtual Symmetric Experiment:**
 

@@ -17,44 +17,164 @@
 
 ###################################################
 
+"""
+generate_single_insertion_df.py
+
+input tsv table columns:
+chrom | start | end | strand
+
+This way one row represents a single experiment.
+
+The script requires the following input:
+- orientation string
+- flank range
+- desired sum of the length of (flank + spacer)
+- (optional) number of background sequences
+
+"""
+
+################################################################################
+# imports
+################################################################################
+
+from optparse import OptionParser
 import pandas as pd
-import numpy as np
 
-from akita_utils.tsv_gen_utils import add_orientation, add_const_flank_and_diff_spacer, add_background
+from akita_utils.tsv_gen_utils import (
+    add_orientation,
+    add_background,
+    add_const_flank_and_diff_spacer,
+)
 
-# read tsv with all filetered mouse ctcfs
-all_ctcf_path = "./../../data_filtered_ctcf_table/filtered_base_mouse_ctcf.tsv"
-df = pd.read_csv(all_ctcf_path, sep="\t")
+################################################################################
+# main
+################################################################################
 
-# we want to perform insertion experiment using all 10 backgrounds for a model
-nr_sites = len(df)
-nr_backgrounds = 10
 
-# adding bg_index and experiment ID
-df = add_background(df, [bg_index for bg_index in range(nr_backgrounds)] )
+def main():
+    usage = "usage: %prog [options]"
+    parser = OptionParser(usage)
+    parser.add_option(
+        "--input-tsv-file",
+        dest="input_tsv_file",
+        default="/home1/smaruj/akitaX1-analyses/input_data/select_strong_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv",
+        help="Specify path to the file with coordinates of CTCF-binding sites in the tested genome",
+    )
+    parser.add_option(
+        "--flank-lenght",
+        dest="flank_lenght",
+        default=30,
+        type="int",
+        help="Specify lenght of flanking sequences",
+    )
+    parser.add_option(
+        "--boundary-orientation-string",
+        dest="boundary_orientation_string",
+        default="<>",
+        type="string",
+        help="Specify orientation string for the boundary scenario",
+    )
+    parser.add_option(
+        "--boundary-spacer",
+        dest="boundary_spacer",
+        default=60,
+        type="int",
+        help="Specify spacer for the boundary scenario",
+    )
+    parser.add_option(
+        "--dot-orientation-string",
+        dest="dot_orientation_string",
+        default="><",
+        type="string",
+        help="Specify orientation string for the dot scenario",
+    )
+    parser.add_option(
+        "--dot-spacer",
+        dest="dot_spacer",
+        default=199970,
+        type="int",
+        help="Specify spacer for the dot scenario",
+    )
+    parser.add_option(
+        "--backgrounds-indices",
+        dest="backgrounds_indices",
+        default="0,1,2,3,4,5,6,7,8,9",
+        type="string",
+        help="Specify number of background sequences that CTCFs will be inserted into",
+    )  
+    parser.add_option(
+        "--boundary-output-filename",
+        dest="boundary_output_filename",
+        default="boundary_out.tsv",
+        help="Filename for boundary output",
+    )  
+    parser.add_option(
+        "--dot-output-filename",
+        dest="dot_output_filename",
+        default="dot_out.tsv",
+        help="Filename for dot output",
+    )    
+    
+    (options, args) = parser.parse_args()
+    
+    flank_length = options.flank_lenght
+    background_indices_list = [int(index) for index in options.backgrounds_indices.split(",")]
 
-exp_id = [i for i in range(nr_sites * nr_backgrounds)]
-df["exp_id"] = exp_id
+    boundary_orient_list = [options.boundary_orientation_string]
+    dot_orient_list = [options.dot_orientation_string]
+    
+    boundary_spacing_list = [options.boundary_spacer]
+    dot_spacing_list = [options.dot_spacer]
+    
+    CTCF_df = pd.read_csv(options.input_tsv_file, sep="\t")
+    nr_sites = len(CTCF_df)
+    
+    # adding background index
+    CTCF_df_with_background = add_background(
+        CTCF_df, 
+        background_indices_list
+        )
 
-# preparing tsv for the boundary scenario
+    exp_id = [i for i in range(nr_sites * len(background_indices_list))]
+    CTCF_df_with_background["exp_id"] = exp_id
 
-# boundary scenaro parameters
-orientation = ["<>"]
-flank = 20
-spacing_list = [70]
+    # adding orientation for boundary
+    boundary_CTCF_df_with_orientation = add_orientation(
+        CTCF_df_with_background.copy(),
+        orientation_strings=boundary_orient_list,
+        all_permutations=False,
+    )
 
-boundary_df = add_orientation(df, orientation_strings=orientation, all_permutations=False)
-boundary_df = add_const_flank_and_diff_spacer(boundary_df, flank, spacing_list)
-boundary_df.to_csv("./input_data/filtered_base_mouse_ctcf_boundary.tsv", sep = "\t", index=False)
+    # adding orientation for dots
+    dot_CTCF_df_with_orientation = add_orientation(
+        CTCF_df_with_background.copy(),
+        orientation_strings=dot_orient_list,
+        all_permutations=False,
+    )
+    
+    # adding flank and spacer for boundary
+    boundary_CTCF_df_with_flanks_spacers = add_const_flank_and_diff_spacer(
+        boundary_CTCF_df_with_orientation, 
+        flank_length, 
+        boundary_spacing_list)
 
-# preparing tsv for the dot scenario
+    # adding flank and spacer for dot
+    dot_CTCF_df_with_flanks_spacers = add_const_flank_and_diff_spacer(
+        dot_CTCF_df_with_orientation, 
+        flank_length, 
+        dot_spacing_list)
 
-# dot scenaro parameters
-orientation = ["><"]
-flank = 20
-spacing_list = [199980]
+    # saving
+    boundary_CTCF_df_with_flanks_spacers.to_csv(
+            options.boundary_output_filename, sep="\t", index=False
+        )
+    
+    dot_CTCF_df_with_flanks_spacers.to_csv(
+            options.dot_output_filename, sep="\t", index=False
+        )
 
-dot_df = add_orientation(df, orientation_strings=orientation, all_permutations=False)
-dot_df = add_const_flank_and_diff_spacer(dot_df, flank, spacing_list)
-dot_df.to_csv("./input_data/filtered_base_mouse_ctcf_dot.tsv", sep = "\t", index=False)
-
+################################################################################
+# __main__
+################################################################################
+if __name__ == "__main__":
+    main()

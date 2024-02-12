@@ -238,12 +238,9 @@ def main():
     model_index = int(model_file.split("c0")[0][-1])
 
     if options.background_file is None:
-        if head_index == 1:
-            options.background_file = f"/project/fudenber_735/tensorflow_models/akita/v2/analysis/mouse_backgrounds/m{model_index}_background_seqs.fa"
-        else:
-            raise Exception(
-                "Please, provide a path to fasta file with human backgrounds"
-            )
+        background_file = f"/project/fudenber_735/akitaX1_analyses_data/background_generation/background_generation/background_sequences_model_{model_index}.fa"
+    else:
+        background_file = options.background_file
 
     random.seed(44)
 
@@ -307,7 +304,7 @@ def main():
     )  # needs to be closed at some point
 
     background_seqs = []
-    with open(options.background_file, "r") as f:
+    with open(background_file, "r") as f:
         for line in f.readlines():
             if ">" in line:
                 continue
