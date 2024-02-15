@@ -1,0 +1,218 @@
+#!/usr/bin/env python
+
+"""
+This script generates a tsv with CTCFs overlapping dots that can be used as input to experiments 
+(to do this, move to the experiments/ directory).
+
+This requires the following inputs:
+- CTCF motif positions as a jaspar tsv,
+- insulation profile with called dots as a tsv, currently at 10kb resolution,
+- chromosome lengths as a chrom.sizes file,
+- model sequence length as json.
+
+First, dots are filtered:
+- dots on non-autosomal chromosomes are dropped,
+- dots closer than model seq_length // 2 to the start or end of chromosomes are dropped.
+
+Second, CTCF motifs are intersected with dots.
+
+Further filtering of CTCFs:
+- based on sites overlapping,
+- based on overlapping with the rmsk table.
+
+"""
+
+from optparse import OptionParser
+import json
+import bioframe as bf
+import numpy as np
+import pandas as pd
+import os
+from akita_utils.tsv_gen_utils import (
+    filter_by_chrmlen,
+    filter_by_overlap_num,
+    filter_by_chromID,
+)
+from akita_utils.format_io import read_jaspar_to_numpy, read_rmsk
+
+
+def main():
+    usage = "usage: %prog [options] <params_file> <vcf_file>"
+    parser = OptionParser(usage)
+
+    parser.add_option(
+        "--model-params-file",
+        dest="model_params_file",
+        default="/project/fudenber_735/tensorflow_models/akita/v2/models/f0c0/train/params.json",
+        help="Parameters of model to be used[Default: %default]",
+    )
+    parser.add_option(
+        "--jaspar-file",
+        dest="jaspar_file",
+        default="/project/fudenber_735/motifs/mm10/jaspar/MA0139.1.tsv.gz",
+        help="Jaspar file with ctcf sites coordinates [Default: %default]",
+    )
+    parser.add_option(
+        "--ctcf-filter-expand-window",
+        dest="ctcf_filter_expand_window",
+        default=60,
+        type=int,
+        help="window size for the ctcf-filtering [Default: %default]",
+    )
+    parser.add_option(
+        "--rmsk-file",
+        dest="rmsk_file",
+        default="/project/fudenber_735/genomes/mm10/database/rmsk.txt.gz",
+        help=" [Default: %default]",
+    )
+    parser.add_option(
+        "--rmsk-filter-expand-window",
+        dest="rmsk_filter_expand_window",
+        default=20,
+        type=int,
+        help="window size for the rmsk-filtering [Default: %default]",
+    )
+    parser.add_option(
+        "--chrom-sizes-file",
+        dest="chrom_sizes_file",
+        default="/project/fudenber_735/genomes/mm10/mm10.chrom.sizes.reduced",
+        help=" [Default: %default]",
+    )
+    parser.add_option(
+        "--dot_file",
+        dest="dot_file",
+        default="/project/fudenber_735/GEO/bonev_2017_GSE96107/distiller-0.3.1_mm10/results/coolers/features/mustache_HiC_ES.mm10.mapq_30.10000.tsv",
+        help=" [Default: %default]",
+    )
+    parser.add_option(
+        "--output-tsv-path",
+        dest="output_tsv_path",
+        default="./output/CTCFs_jaspar_filtered_dots_mm10.tsv",
+        type="str",
+        help="Output path [Default: %default]",
+    )
+    parser.add_option(
+        "--autosomes-only",
+        dest="autosomes_only",
+        default=True,
+        action="store_true",
+        help="Drop the sex chromosomes and mitochondrial DNA [Default: %default]",
+    )
+
+    (options, args) = parser.parse_args()
+
+    if options.autosomes_only:
+        chromID_to_drop = ["chrX", "chrY", "chrM"]
+
+    if os.path.exists(options.output_tsv_path) is True:
+        raise ValueError("dot file already exists!")
+
+    # get model seq_length
+    with open(options.model_params_file) as params_open:
+        params_model = json.load(params_open)["model"]
+        seq_length = params_model["seq_length"]
+    if seq_length != 1310720:
+        raise Warning("potential incompatibilities with AkitaV2 seq_length")
+
+    # load jaspar CTCF motifs
+    jaspar_df = bf.read_table(options.jaspar_file, schema="jaspar", skiprows=1)
+    if options.autosomes_only:
+        jaspar_df = filter_by_chromID(jaspar_df, chrID_to_drop=chromID_to_drop)
+    jaspar_df.reset_index(drop=True, inplace=True)
+
+    # read rmsk file
+    rmsk_df = read_rmsk(options.rmsk_file)
+
+    # load dots
+    dots = pd.read_csv(options.dot_file, sep="\t")
+
+    # combining coordinates into one table
+    dots_bin1 = dots[["BIN1_CHR", "BIN1_START", "BIN1_END", "FDR", "DETECTION_SCALE"]]
+    dots_bin2 = dots[["BIN2_CHROMOSOME", "BIN2_START", "BIN2_END", "FDR", "DETECTION_SCALE"]]
+
+    dots_bin1 = dots_bin1.rename(columns={"BIN1_CHR": "chrom", "BIN1_START": "start", "BIN1_END": "end"})
+    dots_bin2 = dots_bin2.rename(columns={"BIN2_CHROMOSOME": "chrom", "BIN2_START": "start", "BIN2_END": "end"})
+
+    dots = pd.concat([dots_bin1, dots_bin2])
+    
+    if options.autosomes_only:
+        dots = filter_by_chromID(dots, chrID_to_drop=chromID_to_drop)
+
+    dots = filter_by_chrmlen(
+        dots,
+        options.chrom_sizes_file,
+        seq_length,
+    )
+    
+    dots.reset_index(drop=True, inplace=True)
+
+    # overlapping CTCF df with boundaries df
+    df_overlap = bf.overlap(
+        dots, jaspar_df, suffixes=("", "_2"), return_index=False
+    )
+
+    # removing rows with no start and end info
+    df_overlap = df_overlap[pd.notnull(df_overlap["start_2"])]
+    df_overlap = df_overlap[pd.notnull(df_overlap["end_2"])]
+
+    df_overlap["span"] = (
+        df_overlap["start"].astype(str) + "-" + df_overlap["end"].astype(str)
+    )
+
+    df_keys = [
+        "chrom",
+        "start_2",
+        "end_2",
+        "span",
+        "score_2",
+        "strand_2",
+        "FDR",
+        "DETECTION_SCALE",
+    ]
+
+    df_overlap = df_overlap[df_keys]
+
+    # renaming
+    df_overlap = df_overlap.rename(
+        columns={
+            "span": "boundary_span",
+            "score_2": "jaspar_score",
+            "start_2": "start",
+            "end_2": "end",
+            "strand_2": "strand",
+        }
+    )
+
+    # filtering by CTCF
+    filtered_df = filter_by_overlap_num(
+        df_overlap,
+        filter_df=jaspar_df,
+        expand_window=options.ctcf_filter_expand_window,
+        max_overlap_num=1,
+    )
+
+    # filtering by rmsk
+    filtered_df = filter_by_overlap_num(
+        filtered_df,
+        rmsk_df,
+        expand_window=options.rmsk_filter_expand_window,
+        working_df_cols=["chrom", "start", "end"],
+    )
+
+    # picking 1500 sites associated with the strongest dots
+    filtered_df = filtered_df.sort_values(by="FDR", ascending=False)[:1500]
+
+    # adding seq_id
+    filtered_df["seq_id"] = [
+        seq_index for seq_index in range(len(filtered_df))
+    ]
+
+    # saving
+    filtered_df.to_csv(options.output_tsv_path, sep="\t", index=False)
+
+
+################################################################################
+# __main__
+################################################################################
+if __name__ == "__main__":
+    main()
