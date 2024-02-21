@@ -3,6 +3,13 @@ import pandas as pd
 import pysam
 import scipy
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib import colors
+
+import logomaker as lm
+from sklearn.preprocessing import normalize
+
 from akita_utils.dna_utils import dna_rc, dna_1hot_index, dna_1hot
 from akita_utils.tsv_gen_utils import filter_dataframe_by_column
 
@@ -87,6 +94,43 @@ def reorder_by_hamming_dist(dna_matrix, sub_index=(0, -1)):
         scipy.cluster.hierarchy.linkage(seq_dist)
     )
     return dna_matrix[reording]
+
+
+def plot_seq_matrix(dna_matrix, cluster_by_hamming=True, sub_index=(0, -1)):
+    
+    # colormap matching logo colors
+    cmap_acgt = colors.ListedColormap([
+        'green', #a green
+        'blue', #c blue
+        'gold', #g gold
+        'red' #t red
+    ])
+
+    if cluster_by_hamming:
+        dna_matrix = reorder_by_hamming_dist(dna_matrix, sub_index=sub_index)
+
+    plt.figure(figsize=(10,18))
+    im = plt.matshow(
+        dna_matrix, 
+        cmap=cmap_acgt,
+        fignum=False) 
+    plt.colorbar(im, fraction=0.046, pad=0.04)
+
+
+def plot_logo_from_counts(nt_count_table, logo_height = 3, logo_width = 0.45):
+    
+    dna_prob = normalize(nt_count_table, axis=1, norm="l1")
+    dna_prob_df = pd.DataFrame(dna_prob, columns=["A", "C", "G", "T"])
+
+    logo_params = {"df": lm.transform_matrix(dna_prob_df, from_type="probability", to_type="information"),
+                "figsize": (logo_width * dna_prob_df.shape[0], logo_height),
+                "show_spines": False,
+                "vpad": 0.02}
+    
+    logo = lm.Logo(**logo_params)
+    logo.ax.set_ylabel("Bits", fontsize=16)
+    logo.ax.set_ylim(0, 2)
+    logo.ax.set_yticks([0, 0.5, 1, 1.5, 2], minor=False)
 
 
 def prepare_nt_count_table(
