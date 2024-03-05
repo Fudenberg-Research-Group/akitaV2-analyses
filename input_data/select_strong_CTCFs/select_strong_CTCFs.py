@@ -41,4 +41,4 @@ subsampled = subsampled.reset_index()
 subsampled = subsampled.rename(columns={"index": "initial_df_index"})
 
 #saving tsv
-subsampled.to_csv("./output/CTCFs_jaspar_filtered_mm10_subsampled.tsv", sep="\t") 
+subsampled.to_csv("./output/CTCFs_jaspar_filtered_mm10_strong.tsv", sep="\t") 
