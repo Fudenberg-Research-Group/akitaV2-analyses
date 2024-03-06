@@ -372,6 +372,7 @@ def read_and_average_shuffling_exp(
     data_dir,
     not_shuffled_path="/project/fudenber_735/akitaX1_analyses_data/genomic_disruption/disruption_by_permutation/model_0.h5",
     stat_to_average="SCD",
+    model_index=0,
     all_calculated_stats=["SCD", "INS-16", "INS-64"],
 ):
     # reading h5 files to dataframes
@@ -380,84 +381,84 @@ def read_and_average_shuffling_exp(
     )
 
     df_n10k = h5_to_df(
-        data_dir + "/model_0_shift_n10000.h5",
+        data_dir + f"/model_{model_index}_shift_n10000.h5",
         all_calculated_stats,
         average=False,
     )
     df_n1k = h5_to_df(
-        data_dir + "/model_0_shift_n1000.h5",
+        data_dir + f"/model_{model_index}_shift_n1000.h5",
         all_calculated_stats,
         average=False,
     )
     df_n100 = h5_to_df(
-        data_dir + "/model_0_shift_n100.h5",
+        data_dir + f"/model_{model_index}_shift_n100.h5",
         all_calculated_stats,
         average=False,
     )
     df_n10 = h5_to_df(
-        data_dir + "/model_0_shift_n10.h5", all_calculated_stats, average=False
+        data_dir + f"/model_{model_index}_shift_n10.h5", all_calculated_stats, average=False
     )
     df_n1 = h5_to_df(
-        data_dir + "/model_0_shift_n1.h5", all_calculated_stats, average=False
+        data_dir + f"/model_{model_index}_shift_n1.h5", all_calculated_stats, average=False
     )
 
     df_p10k = h5_to_df(
-        data_dir + "/model_0_shift_p10000.h5",
+        data_dir + f"/model_{model_index}_shift_p10000.h5",
         all_calculated_stats,
         average=False,
     )
     df_p1k = h5_to_df(
-        data_dir + "/model_0_shift_p1000.h5",
+        data_dir + f"/model_{model_index}_shift_p1000.h5",
         all_calculated_stats,
         average=False,
     )
     df_p100 = h5_to_df(
-        data_dir + "/model_0_shift_p100.h5",
+        data_dir + f"/model_{model_index}_shift_p100.h5",
         all_calculated_stats,
         average=False,
     )
     df_p10 = h5_to_df(
-        data_dir + "/model_0_shift_p10.h5", all_calculated_stats, average=False
+        data_dir + f"/model_{model_index}_shift_p10.h5", all_calculated_stats, average=False
     )
     df_p1 = h5_to_df(
-        data_dir + "/model_0_shift_p1.h5", all_calculated_stats, average=False
+        data_dir + f"/model_{model_index}_shift_p1.h5", all_calculated_stats, average=False
     )
 
     # avergaing
     df_no_shift = average_stat_for_shift(
-        df_no_shift, shift="no", model_index=0, head_index=1
+        df_no_shift, shift="no", model_index=model_index, head_index=1
     )
 
     df_n10k = average_stat_for_shift(
-        df_n10k, shift="n10k", model_index=0, head_index=1
+        df_n10k, shift="n10k", model_index=model_index, head_index=1
     )
     df_n1k = average_stat_for_shift(
-        df_n1k, shift="n1k", model_index=0, head_index=1
+        df_n1k, shift="n1k", model_index=model_index, head_index=1
     )
     df_n100 = average_stat_for_shift(
-        df_n100, shift="n100", model_index=0, head_index=1
+        df_n100, shift="n100", model_index=model_index, head_index=1
     )
     df_n10 = average_stat_for_shift(
-        df_n10, shift="n10", model_index=0, head_index=1
+        df_n10, shift="n10", model_index=model_index, head_index=1
     )
     df_n1 = average_stat_for_shift(
-        df_n1, shift="n1", model_index=0, head_index=1
+        df_n1, shift="n1", model_index=model_index, head_index=1
     )
 
     df_p10k = average_stat_for_shift(
-        df_p10k, shift="p10k", model_index=0, head_index=1
+        df_p10k, shift="p10k", model_index=model_index, head_index=1
     )
     df_p1k = average_stat_for_shift(
-        df_p1k, shift="p1k", model_index=0, head_index=1
+        df_p1k, shift="p1k", model_index=model_index, head_index=1
     )
     df_p100 = average_stat_for_shift(
-        df_p100, shift="p100", model_index=0, head_index=1
+        df_p100, shift="p100", model_index=model_index, head_index=1
     )
     df_p10 = average_stat_for_shift(
-        df_p10, shift="p10", model_index=0, head_index=1
+        df_p10, shift="p10", model_index=model_index, head_index=1
     )
     df_p1 = average_stat_for_shift(
-        df_p1, shift="p1", model_index=0, head_index=1
+        df_p1, shift="p1", model_index=model_index, head_index=1
     )
 
     stat_collected = pd.concat(
@@ -635,6 +636,31 @@ def read_reverse_complement_disruption(disruption_dir, rc_disruption_dir):
 
     return df_m0
 
+
+def read_shuffling_data(data_dir, stat_names=["SCD"]):
+    # model 0
+    df_m0 = h5_to_df(data_dir+"model_0.h5", stat_names, average=True) 
+    df_m0 = df_m0.rename(columns={"SCD": "SCD_m0"})
+
+    # model 1
+    df_m1 = h5_to_df(data_dir+"model_1.h5", stat_names, average=True) 
+    df_m1 = df_m1.rename(columns={"SCD": "SCD_m1"})
+    df_m0["SCD_m1"] = df_m1["SCD_m1"]
+
+    # model 2
+    df_m2 = h5_to_df(data_dir+"model_2.h5", stat_names, average=True) 
+    df_m2 = df_m2.rename(columns={"SCD": "SCD_m2"})
+    df_m0["SCD_m2"] = df_m2["SCD_m2"]
+
+    # model 3
+    df_m3 = h5_to_df(data_dir+"model_3.h5", stat_names, average=True)
+    df_m3 = df_m3.rename(columns={"SCD": "SCD_m3"})
+    df_m0["SCD_m3"] = df_m3["SCD_m3"]
+
+    # averaging
+    df_m0["SCD"] = df_m0[["SCD_m0", "SCD_m1", "SCD_m2", "SCD_m3"]].mean(axis=1)
+
+    return df_m0
 
 #########################
 
