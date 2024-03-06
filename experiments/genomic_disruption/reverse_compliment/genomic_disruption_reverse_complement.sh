@@ -7,10 +7,10 @@ conda activate basenji_py3.9_tf2.15
 # Parse command line arguments, replace with custom parameters
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa" 
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
-tsv_file="/home1/smaruj/akitaX1-analyses/input_data/preprocess_CTCFs/output/CTCFs_jaspar_filtered_mm10.tsv"
+tsv_file="/home1/smaruj/akitaX1-analyses/input_data/preprocess_boundary_CTCFs/output/CTCFs_jaspar_filtered_mm10.tsv"
 chrom_sizes="/project/fudenber_735/genomes/mm10/mm10.fa.sizes"
 out_dir="/scratch2/smaruj/disruption_by_permutation_rc" 
-models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
+models="2" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8 
 max_proc=8
 processes=8

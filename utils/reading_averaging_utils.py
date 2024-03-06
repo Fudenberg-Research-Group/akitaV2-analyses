@@ -556,6 +556,86 @@ def summarize_average_models_dot_boundary(data_dir, models_number, head_index=1,
     return df_summary
 
 
+def read_disruption_smf_data(data_dir):
+    
+    # reading and averaging data for model 0 only
+    df_m0 = h5_to_df(data_dir+"model_0.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m0 = df_m0.rename(columns={"SCD": "SCD_m0", "INS-16": "INS-16_m0", "INS-64": "INS-64_m0", "score": "PWM_score"})
+    df_m0 = df_m0.drop(columns=["isBound", "name", "TF", "chipseq.score", "width"])
+
+    # model 1
+    df_m1 = h5_to_df(data_dir+"model_1.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m0["SCD_m1"] = df_m1["SCD"]
+    df_m0["INS-16_m1"] = df_m1["INS-16"]
+    df_m0["INS-64_m1"] = df_m1["INS-64"]
+
+    # model 2
+    df_m2 = h5_to_df(data_dir+"model_2.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m0["SCD_m2"] = df_m2["SCD"]
+    df_m0["INS-16_m2"] = df_m2["INS-16"]
+    df_m0["INS-64_m2"] = df_m2["INS-64"]
+
+    # model 3
+    df_m3 = h5_to_df(data_dir+"model_3.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m0["SCD_m3"] = df_m3["SCD"]
+    df_m0["INS-16_m3"] = df_m3["INS-16"]
+    df_m0["INS-64_m3"] = df_m3["INS-64"]
+    
+    df_m0.drop_duplicates('rownames',inplace=True)
+    df_m0 = df_m0.rename(columns={"rownames": "TFBS_cluster"})
+    
+    # averaging
+    df_m0["SCD"] = df_m0[["SCD_m0", "SCD_m1", "SCD_m2", "SCD_m3"]].mean(axis=1)
+    df_m0["INS-16"] = df_m0[["INS-16_m0", "INS-16_m1", "INS-16_m2", "INS-16_m3"]].mean(axis=1)
+    df_m0["INS-64"] = df_m0[["INS-64_m0", "INS-64_m1", "INS-64_m2", "INS-64_m3"]].mean(axis=1)
+
+    return df_m0
+
+
+def read_reverse_complement_disruption(disruption_dir, rc_disruption_dir):
+
+    # model 0
+    df_m0 = h5_to_df(disruption_dir+"model_0.h5", ["SCD", "INS-16", "INS-64"], average=True)
+    df_rc_m0 = h5_to_df(rc_disruption_dir+"model_0_rc.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m0 = df_m0.rename(columns={"SCD": "SCD_m0", "INS-16": "INS-16_m0", "INS-64": "INS-64_m0"})
+    df_rc_m0 = df_rc_m0.rename(columns={"SCD": "RC_SCD_m0", "INS-16": "RC_INS-16_m0", "INS-64": "RC_INS-64_m0"})
+    df_m0[["RC_SCD_m0", "RC_INS-16_m0", "RC_INS-64_m0"]] = df_rc_m0[["RC_SCD_m0", "RC_INS-16_m0", "RC_INS-64_m0"]]
+
+    # model 1
+    df_m1 = h5_to_df(disruption_dir+"model_1.h5", ["SCD", "INS-16", "INS-64"], average=True)
+    df_rc_m1 = h5_to_df(rc_disruption_dir+"model_1_rc.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m1 = df_m1.rename(columns={"SCD": "SCD_m1", "INS-16": "INS-16_m1", "INS-64": "INS-64_m1"})
+    df_rc_m1 = df_rc_m1.rename(columns={"SCD": "RC_SCD_m1", "INS-16": "RC_INS-16_m1", "INS-64": "RC_INS-64_m1"})
+    df_m0[["SCD_m1", "INS-16_m1", "INS-64_m1"]] = df_m1[["SCD_m1", "INS-16_m1", "INS-64_m1"]]
+    df_m0[["RC_SCD_m1", "RC_INS-16_m1", "RC_INS-64_m1"]] = df_rc_m1[["RC_SCD_m1", "RC_INS-16_m1", "RC_INS-64_m1"]]
+
+    # model 2
+    df_m2 = h5_to_df(disruption_dir+"model_2.h5", ["SCD", "INS-16", "INS-64"], average=True)
+    df_rc_m2 = h5_to_df(rc_disruption_dir+"model_2_rc.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m2 = df_m2.rename(columns={"SCD": "SCD_m2", "INS-16": "INS-16_m2", "INS-64": "INS-64_m2"})
+    df_rc_m2 = df_rc_m2.rename(columns={"SCD": "RC_SCD_m2", "INS-16": "RC_INS-16_m2", "INS-64": "RC_INS-64_m2"})
+    df_m0[["SCD_m2", "INS-16_m2", "INS-64_m2"]] = df_m2[["SCD_m2", "INS-16_m2", "INS-64_m2"]]
+    df_m0[["RC_SCD_m2", "RC_INS-16_m2", "RC_INS-64_m2"]] = df_rc_m2[["RC_SCD_m2", "RC_INS-16_m2", "RC_INS-64_m2"]]
+
+    # model 3
+    df_m3 = h5_to_df(disruption_dir+"model_3.h5", ["SCD", "INS-16", "INS-64"], average=True)
+    df_rc_m3 = h5_to_df(rc_disruption_dir+"model_3_rc.h5", ["SCD", "INS-16", "INS-64"], average=True) 
+    df_m3 = df_m3.rename(columns={"SCD": "SCD_m3", "INS-16": "INS-16_m3", "INS-64": "INS-64_m3"})
+    df_rc_m3 = df_rc_m3.rename(columns={"SCD": "RC_SCD_m3", "INS-16": "RC_INS-16_m3", "INS-64": "RC_INS-64_m3"})
+    df_m0[["SCD_m3", "INS-16_m3", "INS-64_m3"]] = df_m3[["SCD_m3", "INS-16_m3", "INS-64_m3"]]
+    df_m0[["RC_SCD_m3", "RC_INS-16_m3", "RC_INS-64_m3"]] = df_rc_m3[["RC_SCD_m3", "RC_INS-16_m3", "RC_INS-64_m3"]]
+
+    # averaging
+    df_m0["SCD"] = df_m0[["SCD_m0", "SCD_m1", "SCD_m2", "SCD_m3"]].mean(axis=1)
+    df_m0["RC_SCD"] = df_m0[["RC_SCD_m0", "RC_SCD_m1", "RC_SCD_m2", "RC_SCD_m3"]].mean(axis=1)
+    df_m0["INS-16"] = df_m0[["INS-16_m0", "INS-16_m1", "INS-16_m2", "INS-16_m3"]].mean(axis=1)
+    df_m0["RC_INS-16"] = df_m0[["RC_INS-16_m0", "RC_INS-16_m1", "RC_INS-16_m2", "RC_INS-16_m3"]].mean(axis=1)
+    df_m0["INS-64"] = df_m0[["INS-64_m0", "INS-64_m1", "INS-64_m2", "INS-64_m3"]].mean(axis=1)
+    df_m0["RC_INS-64"] = df_m0[["RC_INS-64_m0", "RC_INS-64_m1", "RC_INS-64_m2", "RC_INS-64_m3"]].mean(axis=1)
+
+    return df_m0
+
+
 #########################
 
 
