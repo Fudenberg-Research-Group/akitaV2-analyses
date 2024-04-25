@@ -7,14 +7,14 @@ conda activate basenji_py3.9_tf2.15
 # Parse command line arguments, replace with custom parameters
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa" 
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
-tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_pairwise_mutagenesis/input_data/CTCFs_jaspar_filtered_mm10_top100_pairwise_mutagenesis.tsv"
-out_dir="/scratch2/smaruj/pairwise_mutagenesis/pairwise_mutagenesis" 
-models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
+tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_pairwise_mutagenesis/input_data/CTCFs_jaspar_filtered_mm10_top100_pairwise_mutagenesis_bg9.tsv"
+out_dir="/scratch1/smaruj/pairwise_mutagenesis/pairwise_mutagenesis_bg9" 
+models="3" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8
-max_proc=12
-processes=12
+max_proc=11
+processes=11
 stats="SCD,INS-16,INS-64"
-time="0-01:30:00" 
+time="0-01:10:00"
 # constraint="[xeon-6130|xeon-2640v4]"
 
 # Check if genome_fasta file exists
@@ -56,7 +56,7 @@ do
     this_out_dir+="${model}";
 
     # changing name of the jobs to be submitted
-    name="PM_m";
+    name="b9_m";
     name+="${model}";
     
     # running multiGPU script
