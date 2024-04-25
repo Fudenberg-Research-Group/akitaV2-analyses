@@ -7,9 +7,10 @@ conda activate basenji_py3.9_tf2.15
 # Parse command line arguments, replace with custom parameters
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa" 
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
-tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_insulation_offset/input_data/CTCFs_jaspar_filtered_mm10_100strong_6_INSoffset.tsv"
+# tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_insulation_offset/input_data/CTCFs_jaspar_filtered_mm10_100strong_6_INSoffset.tsv"
 # tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_insulation_offset/input_data/CTCFs_jaspar_filtered_mm10_100strong_2_12.tsv"
-out_dir="/scratch2/smaruj/insulation_offset/orientation" 
+tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_insulation_offset/input_data/CTCFs_jaspar_filtered_mm10_100medium_2_12.tsv"
+out_dir="/scratch2/smaruj/insulation_offset/number_medium" 
 models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8
 max_proc=3
@@ -57,7 +58,7 @@ do
     this_out_dir+="${model}";
 
     # changing name of the jobs to be submitted
-    name="O_m";
+    name="N_m";
     name+="${model}";
     
     # running multiGPU script

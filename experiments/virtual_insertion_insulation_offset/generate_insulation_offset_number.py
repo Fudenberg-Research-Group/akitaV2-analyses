@@ -155,6 +155,7 @@ def main():
         CTCF_df = CTCF_df.drop(columns=["Unnamed: 0"])
 
     CTCF_df = CTCF_df.sort_values(by="insertion_SCD", ascending=False)[:options.num_ctcf_sites]
+    # CTCF_df = CTCF_df.sort_values(by="insertion_SCD", ascending=False)[300:400]
     CTCF_df = CTCF_df.reset_index(drop=True)
 
     # adding orientation
