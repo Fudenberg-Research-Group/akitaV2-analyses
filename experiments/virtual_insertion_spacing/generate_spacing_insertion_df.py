@@ -60,7 +60,7 @@ def main():
     parser.add_option(
         "--input-tsv-file",
         dest="input_tsv_file",
-        default="/home1/smaruj/akitaX1-analyses/input_data/downsample_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv",
+        default="/home1/smaruj/akitaX1-analyses/input_data/select_top20percent/output/CTCFs_jaspar_filtered_mm10_top20percent.tsv",
         help="Specify path to the file with coordinates of CTCF-binding sites in the tested genome",
     )
     parser.add_option(
@@ -87,7 +87,7 @@ def main():
     parser.add_option(
         "--num_log-intervals",
         dest="log_space_range",
-        default=200,
+        default=400,
         type="int",
         help="Specify number of intervals to divide the space-range into",
     )
