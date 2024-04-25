@@ -11,6 +11,8 @@ Windows overlapping boundaries:
 Windows overlapping dots:
 `python generate_tsv_dot_boundary_scenario.py --input-tsv-file /home1/smaruj/akitaX1-analyses/input_data/preprocess_dot_CTCFs/output/CTCFs_jaspar_filtered_dots_mm10.tsv --boundary-output-filename input_data/boundary_CTCFs_jaspar_filtered_mm10_strong_dots.tsv --dot-output-filename input_data/dot_CTCFs_jaspar_filtered_mm10_strong_dots.tsv`
 
+generate_tsv_dot_boundary_scenario.py --input-tsv-file /home1/smaruj/akitaX1-analyses/input_data/preprocess_dot_CTCFs/output/CTCFs_jaspar_filtered_dots_mm10.tsv --backgrounds-indices 0,1,2,3,4 --boundary-output-filename ./input_data/dot_windows/boundary_CTCFs_jaspar_filtered_mm10_dot_anchors_bg04.tsv --dot-output-filename ./input_data/dot_windows/dot_CTCFs_jaspar_filtered_mm10_dot_anchors_bg04.tsv
+
 - **Generating Input TSV:**
   - Use `generate_tsv_dot_boundary_scenario.py` to generate a TSV file containing CTCF coordinates. This file serves as input for subsequent experiments.
   - Output: TSV file with CTCF coordinates (found in `/input_data`).
