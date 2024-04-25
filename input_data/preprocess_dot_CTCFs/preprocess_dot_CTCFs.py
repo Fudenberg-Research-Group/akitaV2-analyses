@@ -85,6 +85,26 @@ def main():
         help=" [Default: %default]",
     )
     parser.add_option(
+        "--boundary-file",
+        dest="boundary_file",
+        default="/project/fudenber_735/GEO/bonev_2017_GSE96107/distiller-0.3.1_mm10/results/coolers/features/bonev2017.HiC_ES.mm10.mapq_30.1000.window_200000.insulation",
+        help=" [Default: %default]",
+    )
+    parser.add_option(
+        "--boundary-strength-thresh",
+        dest="boundary_strength_thresh",
+        default=0.25,
+        type=float,
+        help="threshold on boundary strengths [Default: %default]",
+    )
+    parser.add_option(
+        "--boundary-insulation-thresh",
+        dest="boundary_insulation_thresh",
+        default=0.00,
+        type=float,
+        help="threshold on boundary insulation score [Default: %default]",
+    )
+    parser.add_option(
         "--output-tsv-path",
         dest="output_tsv_path",
         default="./output/CTCFs_jaspar_filtered_dots_mm10.tsv",
@@ -123,6 +143,7 @@ def main():
     # read rmsk file
     rmsk_df = read_rmsk(options.rmsk_file)
 
+    # PROCESSING DOTS FILE
     # load dots
     dots = pd.read_csv(options.dot_file, sep="\t")
 
@@ -184,7 +205,7 @@ def main():
     )
 
     # filtering by CTCF
-    filtered_df = filter_by_overlap_num(
+    D_filtered_df = filter_by_overlap_num(
         df_overlap,
         filter_df=jaspar_df,
         expand_window=options.ctcf_filter_expand_window,
@@ -192,23 +213,114 @@ def main():
     )
 
     # filtering by rmsk
-    filtered_df = filter_by_overlap_num(
-        filtered_df,
+    D_filtered_df = filter_by_overlap_num(
+        D_filtered_df,
         rmsk_df,
         expand_window=options.rmsk_filter_expand_window,
         working_df_cols=["chrom", "start", "end"],
     )
 
-    # picking 1500 sites associated with the strongest dots
-    filtered_df = filtered_df.sort_values(by="FDR", ascending=False)[:1500]
+    # PROCESSING BOUNDARIES FILE
+
+    # load boundaries and use standard filters for their strength
+    boundaries = pd.read_csv(options.boundary_file, sep="\t")
+
+    window_size = options.boundary_file.split("window_")[1].split(".")[0]
+    boundary_key, insulation_key = (
+        f"boundary_strength_{window_size}",
+        f"log2_insulation_score_{window_size}",
+    )
+
+    boundaries = boundaries.iloc[
+        (boundaries[boundary_key].values > options.boundary_strength_thresh)
+        * (
+            boundaries[insulation_key].values
+            < options.boundary_insulation_thresh
+        )
+    ]
+
+    if options.autosomes_only:
+        boundaries = filter_by_chromID(boundaries, chrID_to_drop=chromID_to_drop)
+
+    boundaries = filter_by_chrmlen(
+        boundaries,
+        options.chrom_sizes_file,
+        seq_length,
+    )
+
+    boundaries.reset_index(drop=True, inplace=True)
+
+    # overlapping CTCF df with boundaries df
+    df_overlap = bf.overlap(
+        boundaries, jaspar_df, suffixes=("", "_2"), return_index=False
+    )
+
+    # removing rows with no start and end info
+    df_overlap = df_overlap[pd.notnull(df_overlap["start_2"])]
+    df_overlap = df_overlap[pd.notnull(df_overlap["end_2"])]
+
+    df_overlap["span"] = (
+        df_overlap["start"].astype(str) + "-" + df_overlap["end"].astype(str)
+    )
+
+    df_keys = [
+        "chrom",
+        "start_2",
+        "end_2",
+        "span",
+        "score_2",
+        "strand_2",
+        insulation_key,
+        boundary_key,
+    ]
+
+    df_overlap = df_overlap[df_keys]
+
+    # renaming
+    df_overlap = df_overlap.rename(
+        columns={
+            "span": "boundary_span",
+            "score_2": "jaspar_score",
+            "start_2": "start",
+            "end_2": "end",
+            "strand_2": "strand",
+        }
+    )
+
+    # filtering by CTCF
+    B_filtered_df = filter_by_overlap_num(
+        df_overlap,
+        filter_df=jaspar_df,
+        expand_window=options.ctcf_filter_expand_window,
+        max_overlap_num=1,
+    )
+
+    # filtering by rmsk
+    B_filtered_df = filter_by_overlap_num(
+        B_filtered_df,
+        rmsk_df,
+        expand_window=options.rmsk_filter_expand_window,
+        working_df_cols=["chrom", "start", "end"],
+    )
+
+    # filtering those dot-sites that are not boundary sites
+    # Merging the dots and boundaries dataframes with an indicator
+    merged_df = pd.merge(D_filtered_df, B_filtered_df, on=['chrom', 'start', 'end'], how='left', indicator=True)
+    unique_to_dot_anchors = merged_df[merged_df["_merge"] == "left_only"]
+    unique_to_dot_anchors = unique_to_dot_anchors.drop(columns=['boundary_span_y',
+       'jaspar_score_y', 'strand_y', 'log2_insulation_score_200000',
+       'boundary_strength_200000', '_merge'])
+    unique_to_dot_anchors = unique_to_dot_anchors.rename(columns={"boundary_span_x": "boundary_span", 
+                                      "jaspar_score_x": "jaspar_score",
+                                     "strand_x": "strand"})
 
     # adding seq_id
-    filtered_df["seq_id"] = [
-        seq_index for seq_index in range(len(filtered_df))
+    unique_to_dot_anchors["seq_id"] = [
+        seq_index for seq_index in range(len(unique_to_dot_anchors))
     ]
 
     # saving
-    filtered_df.to_csv(options.output_tsv_path, sep="\t", index=False)
+    unique_to_dot_anchors.to_csv(options.output_tsv_path, sep="\t", index=False)
 
 
 ################################################################################

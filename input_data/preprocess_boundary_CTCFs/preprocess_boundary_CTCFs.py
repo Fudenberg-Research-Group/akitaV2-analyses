@@ -131,7 +131,7 @@ def main():
     # load jaspar CTCF motifs
     jaspar_df = bf.read_table(options.jaspar_file, schema="jaspar", skiprows=1)
     if options.autosomes_only:
-        jaspar_df = filter_by_chromID(jaspar_df, chromID_to_drop)
+        jaspar_df = filter_by_chromID(jaspar_df, chrID_to_drop=chromID_to_drop)
     jaspar_df.reset_index(drop=True, inplace=True)
 
     # read rmsk file
@@ -155,7 +155,7 @@ def main():
     ]
 
     if options.autosomes_only:
-        boundaries = filter_by_chromID(boundaries, chromID_to_drop)
+        boundaries = filter_by_chromID(boundaries, chrID_to_drop=chromID_to_drop)
 
     boundaries = filter_by_chrmlen(
         boundaries,
