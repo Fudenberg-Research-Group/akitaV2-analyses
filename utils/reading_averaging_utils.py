@@ -662,6 +662,357 @@ def read_shuffling_data(data_dir, stat_names=["SCD"]):
 
     return df_m0
 
+
+def read_multi_model_shuffling_data(data="/project/fudenber_735/akitaX1_analyses_data/genomic_disruption/shifted_permutations/"):
+
+    # model 0
+    model_index = 0
+    data_dir = data+f"model_{model_index}"
+    df_m0 = read_and_average_shuffling_exp(data_dir,
+                                not_shuffled_path=f'/project/fudenber_735/akitaX1_analyses_data/genomic_disruption/disruption_by_permutation/model_{model_index}.h5',
+                                    stat_to_average="SCD", model_index=model_index)  
+    
+    # model 1
+    model_index = 1
+    data_dir = data+f"model_{model_index}"
+    df_m1 = read_and_average_shuffling_exp(data_dir,
+                                not_shuffled_path=f'/project/fudenber_735/akitaX1_analyses_data/genomic_disruption/disruption_by_permutation/model_{model_index}.h5',
+                                    stat_to_average="SCD", model_index=model_index)  
+
+    # model 2
+    model_index = 2
+    data_dir = data+f"model_{model_index}"
+    df_m2 = read_and_average_shuffling_exp(data_dir,
+                                not_shuffled_path=f'/project/fudenber_735/akitaX1_analyses_data/genomic_disruption/disruption_by_permutation/model_{model_index}.h5',
+                                    stat_to_average="SCD", model_index=model_index)  
+
+    # model 3
+    model_index = 3
+    data_dir = data+f"model_{model_index}"
+    df_m3 = read_and_average_shuffling_exp(data_dir,
+                                not_shuffled_path=f'/project/fudenber_735/akitaX1_analyses_data/genomic_disruption/disruption_by_permutation/model_{model_index}.h5',
+                                    stat_to_average="SCD", model_index=model_index)  
+
+    df_concat = pd.concat([df_m0, df_m1, df_m2, df_m3], axis=1)  
+    for col in df_concat.columns.unique():
+        df_concat[f"{col}_ave"] = df_concat[[f"{col}"]].mean(axis=1)
+
+    return df_concat
+
+
+def read_multi_model_single_flanks_data(data_dir):
+    
+    # reading and averaging data for model 0, background 0 only
+    df_m0_bg0 = h5_to_df(data_dir + "/model_0/" + "model_0_bg_0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"]) 
+
+    # preparing summary df
+    df = average_stat_over_targets(df_m0_bg0, model_index=0, head_index=1, stat="SCD")
+    df = df.rename(columns={"SCD_m0": "SCD_m0_bg0"})
+    df["INS-16_m0_bg0"] = average_stat_over_targets(df_m0_bg0, model_index=0, head_index=1, stat="INS-16")["INS-16_m0"]
+    df["INS-64_m0_bg0"] = average_stat_over_targets(df_m0_bg0, model_index=0, head_index=1, stat="INS-64")["INS-64_m0"]
+    df = df.drop(columns=[f"SCD_h1_m0_t{x}" for x in range(6)] + [f"INS-16_h1_m0_t{x}" for x in range(6)] + [f"INS-64_h1_m0_t{x}" for x in range(6)] + ["background_index"])
+
+    for model_index in range(4):
+        print("Model: ", model_index)
+        if model_index == 0:
+            start_from = 1
+        else:
+            start_from = 0
+    
+        for bg_index in range(start_from, 10):
+            print("\t - bg:", bg_index)
+            df_bg = h5_to_df(data_dir + f"/model_{model_index}/" + f"model_{model_index}_bg_{bg_index}.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"]) 
+            df_bg_tg = average_stat_over_targets(df_bg, model_index=model_index, head_index=1, stat="SCD")
+            df_bg_tg = df_bg_tg.rename(columns={f"SCD_m{model_index}": f"SCD_m{model_index}_bg{bg_index}"})
+            df[f"SCD_m{model_index}_bg{bg_index}"] = df_bg_tg[f"SCD_m{model_index}_bg{bg_index}"]
+            df[f"INS-16_m{model_index}_bg{bg_index}"] = average_stat_over_targets(df_bg, model_index=model_index, head_index=1, stat="INS-16")[f"INS-16_m{model_index}"]
+            df[f"INS-64_m{model_index}_bg{bg_index}"] = average_stat_over_targets(df_bg, model_index=model_index, head_index=1, stat="INS-64")[f"INS-64_m{model_index}"]
+
+    # averaging
+    df["SCD"] = df[[f"SCD_m{model_ind}_bg{bg_ind}" for model_ind in range(4) for bg_ind in range(10)]].mean(axis=1)
+    df["INS-16"] = df[[f"INS-16_m{model_ind}_bg{bg_ind}" for model_ind in range(4) for bg_ind in range(10)]].mean(axis=1)
+    df["INS-64"] = df[[f"INS-64_m{model_ind}_bg{bg_ind}" for model_ind in range(4) for bg_ind in range(10)]].mean(axis=1)
+
+    return df
+
+
+def read_multi_model_double_flanks_data(data_dir):
+    # model 0
+    df_m0_0 = h5_to_df(data_dir + "model_0_0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m0_1 = h5_to_df(data_dir + "model_0_1.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m0 = pd.concat([df_m0_0, df_m0_1])
+    df_m0 = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat="SCD")
+    df_m0["INS-16_m0"] = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat="INS-16")["INS-16_m0"]
+    df_m0["INS-64_m0"] = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat="INS-64")["INS-64_m0"]
+    df_m0 = df_m0.drop(columns=[f"SCD_h1_m0_t{target_ind}" for target_ind in range(6)] + [f"INS-16_h1_m0_t{target_ind}" for target_ind in range(6)] + [f"INS-64_h1_m0_t{target_ind}" for target_ind in range(6)])
+
+    # model 1
+    df_m1_0 = h5_to_df(data_dir + "model_1_0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m1_1 = h5_to_df(data_dir + "model_1_1.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m1 = pd.concat([df_m1_0, df_m1_1])
+    df_m0["SCD_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat="SCD")["SCD_m1"]
+    df_m0["INS-16_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat="INS-16")["INS-16_m1"]
+    df_m0["INS-64_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat="INS-64")["INS-64_m1"]
+    del df_m1
+
+    # model 2
+    df_m2_0 = h5_to_df(data_dir + "model_2_0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m2_1 = h5_to_df(data_dir + "model_2_1.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m2 = pd.concat([df_m2_0, df_m2_1])
+    df_m0["SCD_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat="SCD")["SCD_m2"]
+    df_m0["INS-16_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat="INS-16")["INS-16_m2"]
+    df_m0["INS-64_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat="INS-64")["INS-64_m2"]
+    del df_m2
+
+    # model 3
+    df_m3_0 = h5_to_df(data_dir + "model_3_0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m3_1 = h5_to_df(data_dir + "model_3_1.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=["insertion_SCD", "disruption_SCD"])
+    df_m3 = pd.concat([df_m3_0, df_m3_1])
+    df_m0["SCD_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat="SCD")["SCD_m3"]
+    df_m0["INS-16_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat="INS-16")["INS-16_m3"]
+    df_m0["INS-64_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat="INS-64")["INS-64_m3"]
+    del df_m3
+
+    df = df_m0.groupby(["chrom", "start", "end", "strand", "orientation", "flank_bp"]).agg({"SCD_m0": "mean",
+                                                                                  "SCD_m1": "mean",
+                                                                                  "SCD_m2": "mean",
+                                                                                  "SCD_m3": "mean",
+                                                                                  "INS-16_m0": "mean",
+                                                                                  "INS-16_m1": "mean",
+                                                                                  "INS-16_m2": "mean",
+                                                                                  "INS-16_m3": "mean",
+                                                                                  "INS-64_m0": "mean",
+                                                                                  "INS-64_m1": "mean",
+                                                                                  "INS-64_m2": "mean",
+                                                                                  "INS-64_m3": "mean"}).reset_index()
+
+    # averaging
+    df["SCD"] = df[[f"SCD_m{model_ind}" for model_ind in range(4)]].mean(axis=1)
+    df["INS-16"] = df[[f"INS-16_m{model_ind}" for model_ind in range(4)]].mean(axis=1)
+    df["INS-64"] = df[[f"INS-64_m{model_ind}" for model_ind in range(4)]].mean(axis=1)
+    return df
+
+
+def read_multi_model_data(data_dir, keys_to_ignore = ["disruption_SCD_core",
+                                                                     "disruption_SCD_flank",
+                                                                     "insSCD_group_core",
+                                                                     "insSCD_group_flank",
+                                                                     "insertion_SCD_core",
+                                                                     "insertion_SCD_flank"]):
+    
+    # reading and averaging data for model 0, background 0 only
+    df_m0_bg0 = h5_to_df(data_dir + "/model_0/" + "model_0_bg0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=keys_to_ignore) 
+
+    # preparing summary df
+    df = average_stat_over_targets(df_m0_bg0, model_index=0, head_index=1, stat="SCD")
+    df = df.rename(columns={"SCD_m0": "SCD_m0_bg0"})
+    df["INS-16_m0_bg0"] = average_stat_over_targets(df_m0_bg0, model_index=0, head_index=1, stat="INS-16")["INS-16_m0"]
+    df["INS-64_m0_bg0"] = average_stat_over_targets(df_m0_bg0, model_index=0, head_index=1, stat="INS-64")["INS-64_m0"]
+    df = df.drop(columns=[f"SCD_h1_m0_t{x}" for x in range(6)] + [f"INS-16_h1_m0_t{x}" for x in range(6)] + [f"INS-64_h1_m0_t{x}" for x in range(6)] + ["background_index"])
+
+    for model_index in range(4):
+        print("Model: ", model_index)
+        if model_index == 0:
+            start_from = 1
+        else:
+            start_from = 0
+    
+        for bg_index in range(start_from, 10):
+            print("\t - bg:", bg_index)
+            df_bg = h5_to_df(data_dir + f"/model_{model_index}/" + f"model_{model_index}_bg{bg_index}.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=keys_to_ignore) 
+            df_bg_tg = average_stat_over_targets(df_bg, model_index=model_index, head_index=1, stat="SCD")
+            df_bg_tg = df_bg_tg.rename(columns={f"SCD_m{model_index}": f"SCD_m{model_index}_bg{bg_index}"})
+            df[f"SCD_m{model_index}_bg{bg_index}"] = df_bg_tg[f"SCD_m{model_index}_bg{bg_index}"]
+            df[f"INS-16_m{model_index}_bg{bg_index}"] = average_stat_over_targets(df_bg, model_index=model_index, head_index=1, stat="INS-16")[f"INS-16_m{model_index}"]
+            df[f"INS-64_m{model_index}_bg{bg_index}"] = average_stat_over_targets(df_bg, model_index=model_index, head_index=1, stat="INS-64")[f"INS-64_m{model_index}"]
+
+    # averaging
+    df["SCD"] = df[[f"SCD_m{model_ind}_bg{bg_ind}" for model_ind in range(4) for bg_ind in range(10)]].mean(axis=1)
+    df["INS-16"] = df[[f"INS-16_m{model_ind}_bg{bg_ind}" for model_ind in range(4) for bg_ind in range(10)]].mean(axis=1)
+    df["INS-64"] = df[[f"INS-64_m{model_ind}_bg{bg_ind}" for model_ind in range(4) for bg_ind in range(10)]].mean(axis=1)
+
+    return df
+
+
+def read_multi_model_single_mutagenesis_data(data_dir, keys_to_ignore = ["disruption_SCD", "insertion_SCD"]):
+    
+    # model 0
+    df_m0 = h5_to_df(data_dir+"/model_0.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=keys_to_ignore) 
+    df = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat="SCD")
+    df["INS-16_m0"] = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat="INS-16")["INS-16_m0"]
+    df["INS-64_m0"] = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat="INS-64")["INS-64_m0"]
+    df = df.drop(columns=[f"SCD_h1_m0_t{x}" for x in range(6)] + [f"INS-16_h1_m0_t{x}" for x in range(6)] + [f"INS-64_h1_m0_t{x}" for x in range(6)] + ["background_index"])
+
+    # model 1
+    df_m1 = h5_to_df(data_dir+"/model_1.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=keys_to_ignore) 
+    df["SCD_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat="SCD")["SCD_m1"]
+    df["INS-16_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat="INS-16")["INS-16_m1"]
+    df["INS-64_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat="INS-64")["INS-64_m1"]
+
+    # model 2
+    df_m2 = h5_to_df(data_dir+"/model_2.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=keys_to_ignore) 
+    df["SCD_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat="SCD")["SCD_m2"]
+    df["INS-16_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat="INS-16")["INS-16_m2"]
+    df["INS-64_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat="INS-64")["INS-64_m2"]
+
+    # model 3
+    df_m3 = h5_to_df(data_dir+"/model_3.h5", ["SCD", "INS-16", "INS-64"], average=False, ignore_keys=keys_to_ignore) 
+    df["SCD_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat="SCD")["SCD_m3"]
+    df["INS-16_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat="INS-16")["INS-16_m3"]
+    df["INS-64_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat="INS-64")["INS-64_m3"]
+
+    # averaging
+    df["SCD"] = df[[f"SCD_m{model_ind}" for model_ind in range(4)]].mean(axis=1)
+    df["INS-16"] = df[[f"INS-16_m{model_ind}" for model_ind in range(4)]].mean(axis=1)
+    df["INS-64"] = df[[f"INS-64_m{model_ind}" for model_ind in range(4)]].mean(axis=1)
+
+    return df
+
+
+def read_and_average_insulation_offset_data(data_dir, keys_to_ignore=["insertion_SCD", "disruption_SCD"]):
+    """
+    Reads insulation and offset data from a series of HDF5 files within a specified directory, 
+    then calculates and appends averages across multiple models for selected statistics.
+    
+    This function operates by loading data from four model-specific HDF5 files named 'model_0.h5' 
+    through 'model_3.h5'. It ignores specified keys in the data, then averages specified statistics
+    (OFF-16, OFF-64, and OFF-128) over targets within each model. These averages are calculated
+    separately for each model and appended to a DataFrame. Finally, the function computes the overall
+    mean of each statistic across all models and returns a DataFrame with these values alongside 
+    the model-specific averages.
+
+    Parameters:
+    - data_dir (str): The directory path where the model HDF5 files are located. It is expected that
+                      the files are named sequentially as 'model_0.h5' to 'model_3.h5'.
+    - keys_to_ignore (list of str, optional): A list of keys to ignore when reading data from the HDF5
+                      files. Defaults to ["insertion_SCD", "disruption_SCD"].
+
+    Returns:
+    - pandas.DataFrame: A DataFrame containing the averaged statistics (OFF-16, OFF-64, and OFF-128) for
+                        each model (as separate columns) and the overall averages of these statistics 
+                        across all models (as separate columns).
+    """
+    
+    df_m0 = h5_to_df(data_dir+"model_0.h5", ["SCD", "OFF-16", "OFF-64", "OFF-128"], ignore_keys=keys_to_ignore, average=False)
+    df_m1 = h5_to_df(data_dir+"model_1.h5", ["SCD", "OFF-16", "OFF-64", "OFF-128"], ignore_keys=keys_to_ignore, average=False)
+    df_m2 = h5_to_df(data_dir+"model_2.h5", ["SCD", "OFF-16", "OFF-64", "OFF-128"], ignore_keys=keys_to_ignore, average=False)
+    df_m3 = h5_to_df(data_dir+"model_3.h5", ["SCD", "OFF-16", "OFF-64", "OFF-128"], ignore_keys=keys_to_ignore, average=False)
+
+    df = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat='OFF-64')
+    df["OFF-16_m0"] = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat='OFF-16')["OFF-16_m0"]
+    df["OFF-128_m0"] = average_stat_over_targets(df_m0, model_index=0, head_index=1, stat='OFF-128')["OFF-128_m0"]
+
+    df["OFF-16_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat='OFF-16')["OFF-16_m1"]
+    df["OFF-64_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat='OFF-64')["OFF-64_m1"]
+    df["OFF-128_m1"] = average_stat_over_targets(df_m1, model_index=1, head_index=1, stat='OFF-128')["OFF-128_m1"]
+
+    df["OFF-16_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat='OFF-16')["OFF-16_m2"]
+    df["OFF-64_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat='OFF-64')["OFF-64_m2"]
+    df["OFF-128_m2"] = average_stat_over_targets(df_m2, model_index=2, head_index=1, stat='OFF-128')["OFF-128_m2"]
+
+    df["OFF-16_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat='OFF-16')["OFF-16_m3"]
+    df["OFF-64_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat='OFF-64')["OFF-64_m3"]
+    df["OFF-128_m3"] = average_stat_over_targets(df_m3, model_index=3, head_index=1, stat='OFF-128')["OFF-128_m3"]
+
+    df = df.copy()
+    df["OFF-16"] = df[[f"OFF-16_m{i}" for i in range(4)]].mean(axis=1)
+    df["OFF-64"] = df[[f"OFF-64_m{i}" for i in range(4)]].mean(axis=1)
+    df["OFF-128"] = df[[f"OFF-128_m{i}" for i in range(4)]].mean(axis=1)
+
+    return df
+
+
+def summarize_dot_anchors_data(data_dir, head_index=1, columns_to_keep=["chrom", "end", "start", "strand"], ignore_keys=[]):
+
+    # BOUNDARY DATA
+    print("- processing boundary data from model 0")
+    df_B_bg04 = h5_to_df(data_dir+f"/model_0_boundary_bg04.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
+    df_B_bg59 = h5_to_df(data_dir+f"/model_0_boundary_bg59.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
+    df_B = pd.concat([df_B_bg04, df_B_bg59]).reset_index(drop=True)
+
+    # averaging over targets
+    df_B_ave = average_stat_over_targets(df_B, model_index=0, head_index=1, stat="SCD")
+    df_B_ave["INS-16_m0"] = average_stat_over_targets(df_B, model_index=0, head_index=head_index, stat="INS-16")["INS-16_m0"]
+    df_B_ave["INS-64_m0"] = average_stat_over_targets(df_B, model_index=0, head_index=head_index, stat="INS-64")["INS-64_m0"]
+
+    # averaging over backgrounds
+    summary_df = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="SCD",columns_to_keep=columns_to_keep)[["chrom", "end", "start", "strand", "SCD_m0"]]
+    summary_df = summary_df.rename(columns={"SCD_m0": "SCD_B_m0"})
+    summary_df["INS-16_B_m0"] = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="INS-16",columns_to_keep=columns_to_keep)["INS-16_m0"]
+    summary_df["INS-64_B_m0"] = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="INS-64",columns_to_keep=columns_to_keep)["INS-64_m0"]
+
+    # adding data from the models 1,2,3
+    for model_index in range(1,4):
+        print("- processing boundary data from model", model_index)
+        data_bg04 = h5_to_df(data_dir+f"/model_{model_index}_boundary_bg04.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
+        data_bg59 = h5_to_df(data_dir+f"/model_{model_index}_boundary_bg59.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
+        data = pd.concat([data_bg04, data_bg59]).reset_index(drop=True)
+        
+        # averaging over targets
+        df_B_ave[f"SCD_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="SCD")[f"SCD_m{model_index}"]
+        df_B_ave[f"INS-16_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="INS-16")[f"INS-16_m{model_index}"]
+        df_B_ave[f"INS-64_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="INS-64")[f"INS-64_m{model_index}"]
+    
+        # averaging over backgrounds
+        summary_df[f"SCD_B_m{model_index}"] = average_stat_over_backgrounds(df_B_ave, model_index=model_index, head_index=head_index, stat="SCD",columns_to_keep=columns_to_keep)[f"SCD_m{model_index}"]
+        summary_df[f"INS-16_B_m{model_index}"] = average_stat_over_backgrounds(df_B_ave, model_index=model_index, head_index=head_index, stat="INS-16",columns_to_keep=columns_to_keep)[f"INS-16_m{model_index}"]
+        summary_df[f"INS-64_B_m{model_index}"] = average_stat_over_backgrounds(df_B_ave, model_index=model_index, head_index=head_index, stat="INS-64",columns_to_keep=columns_to_keep)[f"INS-64_m{model_index}"]
+
+
+    # DOT DATA
+    print("- processing dot data from model 0")
+    df_D_bg04 = h5_to_df(data_dir+f"/model_0_dot_bg04.h5", ["SCD", "dot-score", "cross-score", "x-score"], 
+                   ignore_keys=ignore_keys, 
+                       average=False)
+    df_D_bg59 = h5_to_df(data_dir+f"/model_0_dot_bg59.h5", ["SCD", "dot-score", "cross-score", "x-score"], 
+                   ignore_keys=ignore_keys, 
+                       average=False)
+    df_D = pd.concat([df_D_bg04, df_D_bg59]).reset_index(drop=True)
+
+    # averaging over targets
+    df_D_ave = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="SCD")
+    df_D_ave["dot-score_m0"] = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="dot-score")["dot-score_m0"]
+    df_D_ave["cross-score_m0"] = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="cross-score")["cross-score_m0"]
+    df_D_ave["x-score_m0"] = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="x-score")["x-score_m0"]
+
+    # averaging over backgrounds
+    summary_df["SCD_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="SCD", columns_to_keep=columns_to_keep)[["SCD_m0"]]
+    summary_df["dot-score_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="dot-score", columns_to_keep=columns_to_keep)["dot-score_m0"]
+    summary_df["cross-score_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="cross-score", columns_to_keep=columns_to_keep)["cross-score_m0"]
+    summary_df["x-score_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="x-score", columns_to_keep=columns_to_keep)["x-score_m0"]
+
+    # adding data from the models 1,2,3
+    for model_index in range(1,4):
+        print("- processing dot data from model", model_index)
+        data_bg04 = h5_to_df(data_dir+f"/model_{model_index}_dot_bg04.h5", ["SCD", "dot-score", "cross-score", "x-score"], average=False) 
+        data_bg59 = h5_to_df(data_dir+f"/model_{model_index}_dot_bg59.h5", ["SCD", "dot-score", "cross-score", "x-score"], average=False) 
+        data = pd.concat([data_bg04, data_bg59]).reset_index(drop=True)
+        
+        # averaging over targets
+        df_D_ave[f"SCD_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="SCD")[f"SCD_m{model_index}"]
+        df_D_ave[f"dot-score_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="dot-score")[f"dot-score_m{model_index}"]
+        df_D_ave[f"cross-score_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="cross-score")[f"cross-score_m{model_index}"]
+        df_D_ave[f"x-score_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="x-score")[f"x-score_m{model_index}"]
+    
+        # averaging over backgrounds
+        summary_df[[f"SCD_D_m{model_index}", "DETECTION_SCALE", "FDR"]] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="SCD",columns_to_keep=columns_to_keep+["DETECTION_SCALE", "FDR"])[[f"SCD_m{model_index}", "DETECTION_SCALE", "FDR"]]
+        summary_df[f"dot-score_D_m{model_index}"] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="dot-score",columns_to_keep=columns_to_keep)[f"dot-score_m{model_index}"]
+        summary_df[f"cross-score_D_m{model_index}"] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="cross-score",columns_to_keep=columns_to_keep)[f"cross-score_m{model_index}"]
+        summary_df[f"x-score_D_m{model_index}"] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="x-score",columns_to_keep=columns_to_keep)[f"x-score_m{model_index}"]
+
+
+    # averaging over models
+    summary_df["SCD_B"] = summary_df[[f"SCD_B_m{i}" for i in range(4)]].mean(axis=1)
+    summary_df["INS-16_B"] = summary_df[[f"INS-16_B_m{i}" for i in range(4)]].mean(axis=1)
+    summary_df["INS-64_B"] = summary_df[[f"INS-64_B_m{i}" for i in range(4)]].mean(axis=1)
+
+    summary_df["SCD_D"] = summary_df[[f"SCD_D_m{i}" for i in range(4)]].mean(axis=1)
+    summary_df["dot-score_D"] = summary_df[[f"dot-score_D_m{i}" for i in range(4)]].mean(axis=1)
+    summary_df["cross-score_D"] = summary_df[[f"cross-score_D_m{i}" for i in range(4)]].mean(axis=1)
+    summary_df["x-score_D"] = summary_df[[f"x-score_D_m{i}" for i in range(4)]].mean(axis=1)
+
+    return summary_df
+
 #########################
 
 
