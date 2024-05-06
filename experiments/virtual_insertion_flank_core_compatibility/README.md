@@ -1,10 +1,20 @@
+# Flank-Core Compatibility
 
-## Core vs Flank Compatibility Experiment
+This directory contains flank-core compatibility analysis.
 
-1. Sample sites and created input df
-   Tsv files for all backgrounds have to be generated at once, since the CTCF sites are chosen randomly. 
-   `python sites_selection_and_df_generation.py --orientation-string ">" --output-filename CTCFs_jaspar_filtered_mm10_sampled_high_medium_low.tsv`
+## Directories:
 
-2. Prediction generation
-   After updating parameters, run `virtual_insertion_flank_core_compatibility.sh`
-   
+### 1. analysis/
+Contains notebooks and plots related to analysis:
+- **plots/**: Directory with saved plots.
+- **analysis.ipynb**: Notebook analyzing core-flank compatibility data.
+
+### 2. input data/
+Contains 10 TSV files (one for each background) with a set of 100 strong, 100 medium, and 100 weak CTCF sites (the same set for all backgrounds).
+
+## Files:
+
+- **sites_selection_and_df_generation.py**: Script generating TSV with 100 strong, 100 medium, and 100 weak CTCF sites.
+- **virtual_insertion_flank_core_compatibility.py**: Script performing insertion of all combinations of CTCF cores and flanks in the provided TSV table, returns insertion scores of each core-flank pair insertion.
+- **multiGPU_virtual_insertion_flank_core_compatibility.py**: Runs the script above on multiple GPUs.
+- **virtual_insertion_flank_core_compatibility.sh**: Automates generating insertion scores under the Slurm system.

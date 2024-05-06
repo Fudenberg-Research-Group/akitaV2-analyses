@@ -1,14 +1,23 @@
+# Virtual Insertion - Flank Length
 
-## Single Experiment
+This directory contains experiments related to virtual insertion analysis with variable flank length.
 
-1. generating df
-   `python generate_insertion_df.py --input-tsv-file /home1/smaruj/akitaX1-analyses/input_data/select_strong_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv --backgrounds-indices "0" --output-filename /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_flanks/input_data/CTCFs_jaspar_filtered_mm10_single_flanks_bg0.tsv`
+## Directories:
 
-2. prediction -> run virtual_insertion_with_flanks.sh using paramters of choice
+### 1. analysis/
+Contains notebooks and plots related to analysis:
+- **plots/**: Directory with saved plots.
+- **analysis_single_insertion.ipynb**: Notebook analyzing insertion of single CTCF sites with variable flank length.
+- **single_grid_plotting.ipynb**: Notebook plotting a grid of maps with changing flank length for a randomly chosen CTCF from the class with the highest insertion scores (random_10sites_top_class.tsv).
+- **analysis_double_insertion.ipynb**: Notebook analyzing insertion of pairs of CTCF sites with variable flank length.
+- **double_grid_plotting.ipynb**: Notebook plotting a grid of maps with changing flank length for CTCF sites with the highest insertion scores (top10_insSCD.tsv).
 
-## Double Experiment
+### 2. input data/
+Contains 10 TSV files (one for each background) with a set of mouse CTCF sites.
 
-1. generating df
-   `python generate_insertion_df.py --input-tsv-file /home1/smaruj/akitaX1-analyses/input_data/select_top20percent/output/CTCFs_jaspar_filtered_mm10_top20percent.tsv --orientation-string ">>" --all-permutations --output-filename /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_flanks/input_data/CTCFs_jaspar_filtered_mm10_top20percent_double.tsv`
+## Files:
 
-2. prediction -> run virtual_insertion_with_flanks.sh using paramters of choice
+- **generate_insertion_df.py**: Script generating TSV with CTCF sites with insertion parameters.
+- **virtual_insertion_with_flanks.py**: Script performing insertion of CTCF sites as specified in the provided TSV table, returns insertion scores in h5 file format.
+- **multiGPU_virtual_insertion_with_flanks.py**: Runs the script above on multiple GPUs.
+- **virtual_insertion_with_flanks.sh**: Automates generating insertion scores under the Slurm system.
