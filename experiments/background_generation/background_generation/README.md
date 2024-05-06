@@ -7,7 +7,7 @@ This directory facilitates the generation of background genomic data for analysi
 ### 1. input_data/
 Contains a TSV table with 50 genomic windows with uniformly distributed GC content.
 
-## Notebooks:
+## Files:
 
 - **generate_background_df.py**: Given parameters (like a bed file of sequences, shuffle parameter, signal threshold), it prepares a dataframe with genomic windows, calculates their GC content, and appends the dataframe with other specified parameters.
 - **generate_background_df.sh**: Bash file running the above script under the slurm system (sbatch).

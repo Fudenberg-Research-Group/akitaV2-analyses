@@ -15,7 +15,7 @@ Contains input data for sequence shuffling analysis.
 - **shuffled_600seqs.tsv**: Hundreds (n=590) of genomic windows with shuffling parameters specified as 1, 2, 4, 8, 16, 32.
 - **shuffled_600seqs_k8.tsv**: Hundreds (n=590) of genomic windows with shuffling parameter specified as 8.
 
-## Notebooks:
+## Files:
 
 - **generate_shuffled_seqs_df.py**: Notebook generating TSV with genomic windows given a set of parameters.
 
