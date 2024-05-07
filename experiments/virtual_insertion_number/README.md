@@ -1,12 +1,20 @@
+# Virtual Insertion - Number of Inserts
 
-## Vary the Number Virtual Insertion Experiment
+This directory contains experiments related to virtual insertion analysis with varying numbers of inserts.
 
-1. Generate tsv table
-   `python generate_number_insertion_df.py --backgrounds-indices "0" --max-number-sites 40 --output-filename ./input_data/CTCFs_jaspar_filtered_mm10_number_R40_bg0.tsv`
+## Directories:
 
-2. Collecting files
-    `python collect_jobs_and_clean.py /scratch2/smaruj/vary_number/right40_bg0_m0 -d /home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_number/input_data/CTCFs_jaspar_filtered_mm10_number_R40_bg0.tsv -v -l`
+### 1. analysis/
+Contains notebooks and plots related to analysis:
+- **plots/**: Directory with saved plots.
+- **analysis.ipynb**: Notebook analyzing insertion score vs. number of inserts.
 
-3. Generating predictions
-   Change parameters and files in virtual_number_insertion.sh and sbatch it to run the experiement split into jobs.
-   
+### 2. input data/
+Contains one TSV file per background, with genomic coordinates of CTCF sites with insertion parameters (up to 40 inserts into background sequence).
+
+## Files:
+
+- **generate_number_insertion_df.py**: Script generating TSV with CTCF sites and insertion parameters.
+- **virtual_number_insertion.py**: Script performing insertion of CTCF sites as specified in the provided TSV table, returns insertion scores in h5 file format.
+- **multiGPU_virtual_number_insertion.py**: Runs the script above on multiple GPUs.
+- **virtual_number_insertion.sh**: Automates generating insertion scores under the Slurm system.   
