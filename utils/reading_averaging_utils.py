@@ -142,6 +142,7 @@ def read_and_average_virtual_exp(
     stat_to_average="SCD",
     all_calculated_stats=["SCD", "INS-16", "INS-64"],
     model_numbers=8,
+    head_index=1
 ):
     """
     Reads data from h5 files for different models, calculates the average of a specified statistic over various targets and backgrounds, and then averages these values over all models.
@@ -185,54 +186,54 @@ def read_and_average_virtual_exp(
 
     print("averaging over targets")
     df_m0_tg = average_stat_over_targets(
-        df_m0, model_index=0, head_index=1, stat=stat_to_average
+        df_m0, model_index=0, head_index=head_index, stat=stat_to_average
     )
     df_m1_tg = average_stat_over_targets(
-        df_m1, model_index=1, head_index=1, stat=stat_to_average
+        df_m1, model_index=1, head_index=head_index, stat=stat_to_average
     )
     df_m2_tg = average_stat_over_targets(
-        df_m2, model_index=2, head_index=1, stat=stat_to_average
+        df_m2, model_index=2, head_index=head_index, stat=stat_to_average
     )
     df_m3_tg = average_stat_over_targets(
-        df_m3, model_index=3, head_index=1, stat=stat_to_average
+        df_m3, model_index=3, head_index=head_index, stat=stat_to_average
     )
     df_m4_tg = average_stat_over_targets(
-        df_m4, model_index=4, head_index=1, stat=stat_to_average
+        df_m4, model_index=4, head_index=head_index, stat=stat_to_average
     )
     df_m5_tg = average_stat_over_targets(
-        df_m5, model_index=5, head_index=1, stat=stat_to_average
+        df_m5, model_index=5, head_index=head_index, stat=stat_to_average
     )
     df_m6_tg = average_stat_over_targets(
-        df_m6, model_index=6, head_index=1, stat=stat_to_average
+        df_m6, model_index=6, head_index=head_index, stat=stat_to_average
     )
     df_m7_tg = average_stat_over_targets(
-        df_m7, model_index=7, head_index=1, stat=stat_to_average
+        df_m7, model_index=7, head_index=head_index, stat=stat_to_average
     )
 
     print("averaging over backgrounds")
     df_m0_tgbg = average_stat_over_backgrounds(
-        df_m0_tg, model_index=0, head_index=1, stat=stat_to_average
+        df_m0_tg, model_index=0, head_index=head_index, stat=stat_to_average
     )
     df_m1_tgbg = average_stat_over_backgrounds(
-        df_m1_tg, model_index=1, head_index=1, stat=stat_to_average
+        df_m1_tg, model_index=1, head_index=head_index, stat=stat_to_average
     )
     df_m2_tgbg = average_stat_over_backgrounds(
-        df_m2_tg, model_index=2, head_index=1, stat=stat_to_average
+        df_m2_tg, model_index=2, head_index=head_index, stat=stat_to_average
     )
     df_m3_tgbg = average_stat_over_backgrounds(
-        df_m3_tg, model_index=3, head_index=1, stat=stat_to_average
+        df_m3_tg, model_index=3, head_index=head_index, stat=stat_to_average
     )
     df_m4_tgbg = average_stat_over_backgrounds(
-        df_m4_tg, model_index=4, head_index=1, stat=stat_to_average
+        df_m4_tg, model_index=4, head_index=head_index, stat=stat_to_average
     )
     df_m5_tgbg = average_stat_over_backgrounds(
-        df_m5_tg, model_index=5, head_index=1, stat=stat_to_average
+        df_m5_tg, model_index=5, head_index=head_index, stat=stat_to_average
     )
     df_m6_tgbg = average_stat_over_backgrounds(
-        df_m6_tg, model_index=6, head_index=1, stat=stat_to_average
+        df_m6_tg, model_index=6, head_index=head_index, stat=stat_to_average
     )
     df_m7_tgbg = average_stat_over_backgrounds(
-        df_m7_tg, model_index=7, head_index=1, stat=stat_to_average
+        df_m7_tg, model_index=7, head_index=head_index, stat=stat_to_average
     )
 
     print(f"collecting data for {stat_to_average}")

@@ -7,9 +7,9 @@ conda activate basenji_py3.9_tf2.15
 # Parse command line arguments, replace with custom parameters
 genome_fasta="/project/fudenber_735/genomes/mm10/mm10.fa" 
 models_dir="/project/fudenber_735/tensorflow_models/akita/v2/models"
-tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_experiment/input_data/CTCFs_jaspar_filtered_mm10_single_insertion_30flanks.tsv"
-out_dir="/scratch2/smaruj/virtual_insertion/virtual_insertion" 
-models="0" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
+tsv_file="/home1/smaruj/akitaX1-analyses/experiments/virtual_insertion_singletons/input_data/CTCFs_jaspar_filtered_mm10_single_insertion_30flanks.tsv"
+out_dir="/scratch1/smaruj/insertion_human/human_insertion" 
+models="3" # this is a string with space seperated model numbers examples "0 1 2" or "4 5 6" 
 batch_size=8
 max_proc=8
 processes=8
@@ -48,8 +48,9 @@ do
     params_file+="params.json";
     
     model_file="${this_models_dir}";
-    model_file+="model1_best.h5";
-
+    # model_file+="model1_best.h5"; #mouse
+    model_file+="model0_best.h5"; #human
+    
     # changing outdir for this model
     this_out_dir="${out_dir}";
     this_out_dir+="_m";
