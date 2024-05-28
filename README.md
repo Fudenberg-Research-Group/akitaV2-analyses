@@ -1,6 +1,6 @@
-# Repository Name
+# akitaX1-analyses
 
-This repository houses various components essential for data analysis and experimentation.
+This repository houses various components essential for data analysis and experimentation with the Akita model.
 
 ## Directories:
 
