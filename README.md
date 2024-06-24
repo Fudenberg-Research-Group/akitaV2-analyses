@@ -10,8 +10,11 @@ Contains all experiments conducted during the project. Refer to individual exper
 ### 2. figures/
 Includes default plotting configurations and example maps utilized in illustrations.
 
-### 3. input data/
+### 3. tutorials/
+Includes two notebooks exlaining and visualizing disruption and insertion experiments.
+
+### 4. input data/
 Consists of data preprocessing scripts and crucial TSV tables required for analysis.
 
-### 4. utils/
+### 5. utils/
 Comprises utility functions aiding in various aspects of the project.
