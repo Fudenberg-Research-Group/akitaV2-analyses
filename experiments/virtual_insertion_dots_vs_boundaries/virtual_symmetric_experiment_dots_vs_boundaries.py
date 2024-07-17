@@ -1,67 +1,9 @@
-#!/usr/bin/env python
-
-# Copyright 2017 Calico LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =========================================================================
-
-###################################################
-
-"""
-virtual_symmetric_experiment_dots_vs_boundaries
-derived from virtual_symmetric_experiment.py
-
-This scripts computes insertion scores for motif insertions from a tsv file with:
-chrom | start | end | strand | genomic_SCD | orientation | background_index | flank_bp | spacer_bp
-where one row represents a single experiment.
-The insertion scores are added as next keys in the h5 format file.
-
-The script requires the following input:
-
-Parameters:
------------
-<params_file> - parameters for the akita model
-<model_file> - model in the h5 format
-<motifs_file> - tsv/csv table specifying designed experiemensts
-
-Options:
------------
-- path to the mouse or human genome in the fasta format
-- batch size 
-- path to the background file (in the fasta format)
-- output directory for tables and plots
-- flag -m to plot contact map for some of the performed experiments
-- (optional, specific for plotting) heatmap plot limit
-- (optional, specific for plotting) heatmap plot frequency
-- (optional) add option --rc to average forward and reverse complement predictions
-- (optional) adding --shifts k ensembles prediction shifts by k
-- (optional) adding --save-maps generates h5 file with saved all prediction vectors
-
-"""
-
-################################################################################
-# imports
-################################################################################
-
 from __future__ import print_function
-
 from optparse import OptionParser
 import json
 import os
-
 import pickle
 import random
-
 import pandas as pd
 import pysam
 
@@ -79,7 +21,7 @@ from akita_utils.seq_gens import (
     symmertic_insertion_seqs_gen,
     reference_seqs_gen,
 )
-from akita_utils.utils import split_df_equally
+from akita_utils.tsv_utils import split_df_equally
 from akita_utils.h5_utils import (
     initialize_stat_output_h5,
     initialize_maps_output_h5,
