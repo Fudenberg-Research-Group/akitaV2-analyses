@@ -1,54 +1,14 @@
-#!/usr/bin/env python
-
-# Copyright 2017 Calico LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =========================================================================
-
-###################################################
-
-"""
-generate_insulation_offset_assymetry_df.py
-
-input tsv table columns:
-chrom | start | end | strand
-
-This way one row represents a single experiment.
-
-The script requires the following input:
-- orientation string
-- flank length
-- desired sum of the length of (flank + spacer)
-- (optional) number of background sequences
-
-"""
-
-################################################################################
-# imports
-################################################################################
-
 from optparse import OptionParser
 import pandas as pd
 import numpy as np
 
 from cooltools.lib import numutils
 
-from akita_utils.tsv_gen_utils import (
+from akita_utils.tsv_utils import (
     add_orientation,
     add_background,
     add_diff_flanks_and_const_spacer,
 )
-
 
 ################################################################################
 # helper function
