@@ -21,18 +21,13 @@ Derived from akita_motif_scd_multi.py (https://github.com/Fudenberg-Research-Gro
 
 Generates background sequences using windows specidfied in a TSV file, using multiple processes.
 
-Relies on slurm_gf.py to auto-generate slurm jobs.
-
 """
 
 from optparse import OptionParser
 import os
-
 import pickle
-
-import akita_utils.slurm_gf as slurm
+import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
-
 
 ################################################################################
 # main
