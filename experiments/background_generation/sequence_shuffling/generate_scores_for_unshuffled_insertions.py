@@ -1,3 +1,35 @@
+# This script generates predictions using a trained deep learning model and saves statistical metrics.
+# It reads model parameters, a model file, and a TSV file with sequence information, then processes these
+# sequences to generate predictions and compute specified statistical metrics. The script also supports 
+# multi-GPU execution using SLURM and can save prediction maps if requested.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - shuffled_seqs_tsv: TSV file with sequence coordinates and other details.
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_lim_min: Heatmap plot limit (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - plot_map: Whether to plot contact maps for each allele (default: False).
+# - out_dir: Output directory for tables and plots (default: "./").
+# - processes: Number of processes for multi-GPU execution.
+# - rc: Average forward and reverse complement predictions (default: False).
+# - stats: Comma-separated list of stats to save (default: "SCD").
+# - shifts: Ensemble prediction shifts (default: "0").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Specify batch size (default: 4).
+# - save_maps: Whether to save all the maps in the h5 file (default: False).
+#
+# Outputs:
+# - Predictions and statistical metrics saved in an HDF5 file.
+# - Optionally, prediction maps and other related files in the specified output directory.
+#
+# Example command-line usage:
+# python generate_scores_for_unshuffled_insertions.py params.json model_file.h5 shuffled_seqs.tsv
+
+
 from optparse import OptionParser
 import json
 import os
@@ -17,6 +49,7 @@ from akita_utils.tsv_utils import split_df_equally
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -253,7 +286,6 @@ def main():
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

@@ -48,6 +48,7 @@ from akita_utils.h5_utils import job_started
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)

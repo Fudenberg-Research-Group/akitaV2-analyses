@@ -35,6 +35,10 @@ import argparse
 from akita_utils.tsv_utils import filter_dataframe_by_column
 
 
+################################################################################
+# main
+################################################################################
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", dest="genome_fasta", help="fasta file", required=True)
@@ -128,5 +132,10 @@ def main():
     parameters_combo_dataframe.to_csv(f"{args.output_filename}", sep="\t", index=False)
 
 
+################################################################################
+# __main__
+################################################################################
+
 if __name__ == "__main__":
     main()
+    

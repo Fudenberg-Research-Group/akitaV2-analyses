@@ -1,3 +1,45 @@
+# This script launches jobs to generate background sequences and visualize contact maps using SLURM.
+# It reads model parameters, a model file, and a TSV file with genomic windows, then submits jobs to 
+# create background sequences using the specified model. Configurable parameters include plot limits, 
+# output directory, batch size, maximum iterations, reverse complement averaging, ensemble prediction shifts, 
+# SLURM queue, number of CPUs, and whether to restart incomplete jobs.
+
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - tsv_file: TSV file specifying genomic windows.
+
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_lim_min: Heatmap plot limit (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - plot_map: Whether to plot contact maps for each background sequence (default: True).
+# - out_dir: Output directory for tables and plots (default: "scd").
+# - rc: Average forward and reverse complement predictions (default: False).
+# - shifts: Ensemble prediction shifts (default: "0").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Specify batch size.
+# - save_seqs: Whether to save the final sequences in FASTA format (default: True).
+# - max_iters: Maximum iterations (default: 20).
+# - cpu: Run without a GPU (default: False).
+# - num_cpus: Number of CPUs (default: 2).
+# - name: SLURM name prefix (default: "exp").
+# - max_proc: Maximum concurrent processes.
+# - processes: Number of processes.
+# - queue: SLURM queue to run the jobs (default: "gpu").
+# - restart: Restart a partially completed job (default: False).
+# - time: Time to run job (default: "01:00:00").
+# - gres: GPU resources (default: "gpu").
+# - constraint: CPU constraints to avoid specific GPUs (default: "[xeon-6130|xeon-2640v4]").
+
+# Output:
+# - Background sequences in specified output directory.
+# - Heatmap plots of contact maps for each background sequence.
+
+# Example command-line usage:
+# python multiGPU-generate_background_sequences.py params.json model_file.h5 windows.tsv
+
+
 from optparse import OptionParser
 import os
 import pickle

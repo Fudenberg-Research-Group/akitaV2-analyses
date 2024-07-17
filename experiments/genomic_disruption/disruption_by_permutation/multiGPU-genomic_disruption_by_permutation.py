@@ -1,3 +1,42 @@
+# This script facilitates launching multiple computational jobs for genomic disruption analysis using permutation strategies.
+# It utilizes the SLURM workload manager for job scheduling and management on HPC clusters.
+#
+# Command-Line Options:
+# -f, --genome_fasta: Genome FASTA file for sequences.
+# -m, --plot_map: Enable plotting contact maps for each allele.
+# -l, --plot_lim_min: Heatmap plot limit (default: 0.1).
+# --plot-freq: Frequency of heatmap plotting (default: 100).
+# -o, --out_dir: Output directory for tables and plots (default: "scd").
+# -c, --chrom_sizes: Table with chromosome sizes.
+# --rc: Average forward and reverse complement predictions (default: False).
+# --shifts: Ensemble prediction shifts (default: "0").
+# --stats: Comma-separated list of stats to save (default: "SCD").
+# -t, --targets_file: File specifying target indexes and labels in table format.
+# --batch-size: Specify batch size.
+# --save-maps: Save all maps in the HDF5 file (all inserts, backgrounds, and targets).
+#
+# Multi-Processing Options:
+# --cpu: Run without using a GPU.
+# --num_cpus: Number of CPUs to use (default: 2).
+# --name: SLURM job name prefix (default: "exp").
+# --max_proc: Maximum concurrent processes.
+# -p, --processes: Number of processes for multi-script (multi-GPU execution).
+# -q, --queue: SLURM queue for job submission (default: "gpu").
+# -r, --restart: Restart a partially completed job.
+# --time: Time duration for job execution (default: "01:00:00").
+# --gres: GPU resources (default: "gpu").
+# --constraint: CPU constraints to avoid specific GPU types (default: "[xeon-6130|xeon-2640v4]").
+#
+# Functionality:
+# - Validates input parameters and initializes necessary directories and serialization of options.
+# - Constructs SLURM job commands for launching Python scripts in a specified conda environment.
+# - Manages job submission and monitors job progress using SLURM utilities (`slurm_utils`).
+# - Supports both single-worker and multi-GPU execution with flexible configuration options.
+#
+# Example Usage:
+# python multiGPU-genomic_disruption_by_permutation.py params.json model_file.h5 tsv_file.tsv
+
+
 from optparse import OptionParser
 import os
 import pickle

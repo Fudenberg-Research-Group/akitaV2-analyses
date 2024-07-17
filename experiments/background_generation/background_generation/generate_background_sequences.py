@@ -1,3 +1,37 @@
+# This script generates background sequences and visualizes contact maps for each sequence using a specified model.
+# It reads genomic windows from a TSV file and processes them using a model to create background sequences.
+# Configurable parameters include plot limits, output directory, batch size, maximum iterations, 
+# reverse complement averaging, ensemble prediction shifts, and whether to save sequences and plot maps.
+# The script can be run in single or multi-GPU mode, depending on the number of provided arguments.
+
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - motifs_file: TSV file specifying genomic windows.
+
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_lim_min: Heatmap plot limit (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - plot_map: Whether to plot contact maps for each background sequence (default: True).
+# - out_dir: Output directory for tables and plots (default: ./).
+# - processes: Number of processes for multi-GPU option.
+# - rc: Average forward and reverse complement predictions (default: False).
+# - shifts: Ensemble prediction shifts (default: "0").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Specify batch size (default: 4).
+# - save_seqs: Whether to save the final sequences in FASTA format (default: True).
+# - max_iters: Maximum iterations (default: 20).
+
+# Output:
+# - Background sequences in FASTA format.
+# - Heatmap plots of contact maps for each background sequence.
+
+# Example command-line usage:
+# python generate_background_sequences.py params.json model_file.h5 motifs.tsv
+# python generate_background_sequences.py options.pkl params.json model_file.h5 motifs.tsv worker_index
+
+
 from optparse import OptionParser
 import json
 import os
@@ -259,12 +293,11 @@ def main():
             plt.tight_layout()
             plt.savefig(f"{options.out_dir}/seq{no}_max-SCD{max_scd}.pdf")
             plt.close()
-
+            
 
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

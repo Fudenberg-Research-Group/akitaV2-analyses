@@ -1,3 +1,42 @@
+# This script is designed to generate predictions using a trained deep learning model and save statistical metrics.
+# It reads model parameters, a model file, and a TSV file with sequence information. It supports multi-GPU execution
+# using SLURM and can handle restarts of partially completed jobs. The script can also save prediction maps if requested.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - tsv_file: TSV file with sequence coordinates and other details.
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_map: Whether to plot contact maps for each allele (default: False).
+# - plot_lim_min: Heatmap plot limit (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - out_dir: Output directory for tables and plots (default: "scd").
+# - rc: Average forward and reverse complement predictions (default: False).
+# - shifts: Ensemble prediction shifts (default: "0").
+# - stats: Comma-separated list of stats to save (default: "SCD").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Specify batch size.
+# - save_maps: Whether to save all the maps in the h5 file (default: False).
+# - cpu: Run without a GPU (default: False).
+# - num_cpus: Number of CPUs (default: 2).
+# - name: SLURM name prefix (default: "exp").
+# - max_proc: Maximum concurrent processes.
+# - processes: Number of processes (for multi-GPU execution).
+# - queue: SLURM queue on which to run the jobs (default: "gpu").
+# - restart: Restart a partially completed job (default: False).
+# - time: Time to run the job (default: "01:00:00").
+# - gres: GPU resources (default: "gpu").
+# - constraint: CPU constraints to avoid the a40 GPUs (default: "[xeon-6130|xeon-2640v4]").
+#
+# Outputs:
+# - Predictions and statistical metrics saved in an HDF5 file.
+# - Optionally, prediction maps and other related files in the specified output directory.
+#
+# Example command-line usage:
+# python multiGPU-generate_scores_for_unshuffled_insertions.py params.json model_file.h5 unshuffled_insertions.tsv
+
 from optparse import OptionParser
 import os
 import pickle

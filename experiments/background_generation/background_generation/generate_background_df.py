@@ -1,12 +1,38 @@
-# import general libraries
+# This script generates a dataframe specifying genomic sequence loci and associated parameters for sequence manipulation experiments.
+# It reads sequence intervals from a BED file and calculates GC content using a genome FASTA file.
+# Configurable parameters include shuffle sizes, motif detection thresholds, mutation methods, output filename, 
+# sample size for background loci, locus selection mode, and map score thresholds.
+# The script produces a TSV file containing all possible combinations of these parameters and corresponding sequence loci.
 
+# Inputs:
+# - genome_fasta: Genome FASTA file for sequences.
+# - seq_bed_file: BED file specifying genomic intervals to prepare for shuffling.
+
+# Parameters:
+# - output_filename: Name of the output TSV file (default: data/flat_seqs_test.tsv).
+# - shuffle_parameter: List of integers specifying k-mer sizes for sequence shuffling (default: [8]).
+# - ctcf_detection_threshold: List of integers specifying thresholds for CTCF motif detection (default: [8]).
+# - mutation_method: List of methods for sequence mutation (default: ['permute_whole_seq']).
+# - num_backgrounds: Number of loci to select for background creation (default: 10).
+# - mode: Criteria for selecting genomic loci based on GC content (default: uniform).
+# - SCD_threshold: List of maximum allowable map scores for SCD (default: [40]).
+
+# Output:
+# - A TSV file with all parameter combinations and associated sequence loci information.
+
+# Example command-line usage:
+# python generate_background_df.py -f genome.fasta -seq_bed_file sequences.bed --shuffle_parameter 8 --ctcf_detection_threshold 8 --mutation_method permute_whole_seq --num_backgrounds 10 --mode uniform --SCD_threshold 40
+
+# import general libraries
 import itertools
 import pandas as pd
 import bioframe
 import argparse
 from akita_utils.tsv_utils import filter_dataframe_by_column
 
-
+################################################################################
+# main
+################################################################################
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -129,6 +155,9 @@ def main():
         f"{args.output_filename}", sep="\t", index=False
     )
 
+################################################################################
+# __main__
+################################################################################
 
 if __name__ == "__main__":
     main()
