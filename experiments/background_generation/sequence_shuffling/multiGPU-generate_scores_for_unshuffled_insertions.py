@@ -1,36 +1,7 @@
-#!/usr/bin/python
-
-# Copyright 2017 Calico LLC
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     https://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =========================================================================
-
-"""
-multiGPU-genomic_disruption_by_permutation.py
-Derived from akita_motif_scd_multi.py (https://github.com/Fudenberg-Research-Group/akita_utils/blob/main/bin/disrupt_genomic_boundary_ctcfs/akita_motif_scd_multi.py)
-
-Compute scores for motifs in a TSV file, using multiple processes.
-
-Relies on slurm_gf.py to auto-generate slurm jobs.
-
-"""
-
 from optparse import OptionParser
 import os
-
 import pickle
-
-import akita_utils.slurm_gf as slurm
+import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
 ################################################################################

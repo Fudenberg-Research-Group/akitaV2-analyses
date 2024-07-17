@@ -1,67 +1,13 @@
-#!/usr/bin/python
-
-# Copyright 2017 Calico LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =========================================================================
-
-###################################################
-
-"""
-generate_background_sequences.py
-derived from virtual_symmetric_experiment.py
-
-This scripts computes genomic disruption scores for motifs from a tsv file with:
-chrom | start | end
-where one row represents a single experiment.
-The insertion scores are added as next keys in the h5 format file.
-
-The script requires the following input:
-
-Parameters:
------------
-<params_file> - parameters for the akita model
-<model_file> - model in the h5 format
-<windows_file> - tsv/csv table specifying genomic windows
-
-Options:
------------
-- path to the mouse or human genome in the fasta format
-- batch size 
-- output directory for fasta file and plots
-- flag -s to save background sequences in fasta format
-- flag --max_iters with the maximum number of iterations to perform (for each sequence)
-- flag --plot_map to plot maps with the lowest SCD for each sequence
-- (optional, specific for plotting) heatmap plot limit
-- (optional, specific for plotting) heatmap plot frequency
-- (optional) add option --rc to average forward and reverse complement predictions
-- (optional) adding --shifts k ensembles prediction shifts by k
-"""
-
 from optparse import OptionParser
 import json
 import os
 import pickle
 import random
 import pandas as pd
-
-# import h5py
 import numpy as np
-
 import matplotlib.pyplot as plt
 from skimage.measure import block_reduce
 import seaborn as sns
-
 import tensorflow as tf
 from basenji import seqnn, stream
 

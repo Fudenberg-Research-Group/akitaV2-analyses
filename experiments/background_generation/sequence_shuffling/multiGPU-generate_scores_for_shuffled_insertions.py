@@ -1,36 +1,48 @@
-#!/usr/bin/python
-
-# Copyright 2017 Calico LLC
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     https://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =========================================================================
-
-"""
-multiGPU-genomic_disruption_by_permutation.py
-Derived from akita_motif_scd_multi.py (https://github.com/Fudenberg-Research-Group/akita_utils/blob/main/bin/disrupt_genomic_boundary_ctcfs/akita_motif_scd_multi.py)
-
-Compute scores for motifs in a TSV file, using multiple processes.
-
-Relies on slurm_gf.py to auto-generate slurm jobs.
-
-"""
+# This script manages the execution of parallel jobs using SLURM for generating scores from shuffled genomic insertions.
+# It takes parameters from a specified file, processes genomic models, and outputs results to a H5 file.
+# Optional settings include GPU usage, output directory, job restart handling, and SLURM job configuration.
+#
+# Inputs:
+# - params_file: File containing parameters for model execution.
+# - model_file: File containing genomic models to process.
+# - tsv_file: Output TSV file for storing results.
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_map: Option to plot contact maps for each allele.
+# - plot_lim_min: Heatmap plot limit.
+# - plot_freq: Heatmap plot frequency.
+# - out_dir: Output directory for tables and plots.
+# - rc: Average forward and reverse complement predictions.
+# - shifts: Ensemble prediction shifts.
+# - stats: Comma-separated list of statistics to save.
+# - targets_file: File specifying target indexes and labels.
+# - batch_size: Batch size for processing.
+# - save_maps: Option to save all maps in an HDF5 file.
+#
+# SLURM Job Configuration:
+# - cpu: Run without GPU.
+# - num_cpus: Number of CPUs to allocate.
+# - name: SLURM job name prefix.
+# - max_proc: Maximum concurrent processes.
+# - processes: Number of worker processes.
+# - queue: SLURM queue for job execution.
+# - restart: Option to restart partially completed jobs.
+# - time: Maximum time to run each job.
+# - gres: GPU resources required.
+# - constraint: CPU constraints to avoid specific GPU types.
+#
+# Usage:
+# - Ensure the correct setup of parameters, models, and output paths before execution.
+# - Jobs are launched using SLURM for parallel processing with specified configurations.
+#
+# Example:
+# python multiGPU-generate_scores_for_shuffled_insertions.py -f genome.fasta -m -o output_dir --num_cpus 4 --name experiment --queue gpu --time 01:00:00
 
 from optparse import OptionParser
 import os
-
 import pickle
-
-import akita_utils.slurm_gf as slurm
+import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
 ################################################################################

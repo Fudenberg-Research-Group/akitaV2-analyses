@@ -1,39 +1,38 @@
-"""
-This script generates and saves a dataframe specifying sequence chrom, start, end, along with how they should be shuffled. The saved dataframe can then be used as (i) input to scripts that save shuffled fasta files, or (ii) as an input to shuffle sequences on the fly to generate respective scores.
-
-The inputs to this script are:
-(1) fasta file of appropriate genome.
-(2) set of intervals to prepare for shuffling, in the bed format.
-
-Other parameters include:
-
-'shuffle_parameter', which specifies the kmer size to shuffle by
-'ctcf_detection_threshold', which specifies the accuracy in idenfying motifs from a seq
-'mutation_method', which can be any of ['permute_whole_seq','randomise_whole_seq','mask_motif','permute_motif','randomise_motif']
-'output_filename', which is the name of the output tsv file
-'num_seqs', which is sample size
-'mode', locus GC content selection criteria which maybe 'uniform', 'tail', 'head', 'random'
--------------------------------------------------------------------------------------------------
-
-The output dataframe has all possible combinations of the provided parameters.
-To generate multiple maps, provide multiple value of same parameter in CLI, i.e  e.g. --shuffle_parameter 2 4 8
-
----------------- typical arguments for choice of bed (mouse or human) ------------------------
-these are bed files with intervals the models were trained on.
-
-seq_bed_file = '/project/fudenber_735/tensorflow_models/akita/v2/data/mm10/sequences.bed' #mouse
-genome_fasta = '/project/fudenber_735/genomes/mm10/mm10.fa' #mouse
-seq_bed_file = '/project/fudenber_735/tensorflow_models/akita/v2/data/hg38/sequences.bed' #human
-genome_fasta = '/project/fudenber_735/genomes/hg38/hg38.fa'#human
--------------------------------------------------------------------------------------------------
-"""
+# This script prepares a dataframe specifying genomic sequence loci for shuffling experiments.
+# It reads genomic intervals from a BED file and calculates GC content using a reference genome fasta file.
+# Parameters such as shuffle sizes, motif detection thresholds, mutation methods, output filename,
+# sample size, and locus selection mode are configurable via command-line arguments.
+# The script generates all possible combinations of these parameters and saves them as a TSV file.
+#
+# Inputs:
+# - Genome fasta file containing the reference genome sequences.
+# - BED file specifying genomic intervals to prepare for shuffling.
+#
+# Parameters:
+# - shuffle_parameter: K-mer sizes for sequence shuffling.
+# - ctcf_detection_threshold: Accuracy thresholds for motif identification.
+# - mutation_method: Methods for sequence mutation (e.g., permutation, randomization, motif masking).
+# - output_filename: Name of the output TSV file.
+# - num_seqs: Number of sequences to sample from the BED file based on GC content.
+# - mode: Criteria for selecting genomic loci based on GC content (uniform, tail, head, random).
+#
+# Output:
+# - A TSV file with all parameter combinations and associated sequence loci information.
+#
+# Usage notes:
+# - Multiple values for each parameter can be specified via the command-line interface (e.g., --shuffle_parameter 2 4 8).
+# - Example BED files for mouse (mm10) and human (hg38) genomes are provided as reference.
+#   Adjust paths accordingly for different datasets.
+#
+# Example command-line usage:
+# python generate_shuffled_seqs_df.py -f genome.fasta -seq_bed_file intervals.bed --shuffle_parameter 2 4 8 --output_filename shuffled_seqs.tsv --num_seqs 20 --mode uniform
 
 # import general libraries
 import itertools
 import pandas as pd
 import bioframe
 import argparse
-from akita_utils.tsv_gen_utils import filter_dataframe_by_column
+from akita_utils.tsv_utils import filter_dataframe_by_column
 
 
 def main():
