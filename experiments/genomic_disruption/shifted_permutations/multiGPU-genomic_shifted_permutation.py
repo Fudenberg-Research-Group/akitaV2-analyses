@@ -1,12 +1,57 @@
+# Description:
+# This script prepares and runs predictions using a trained deep learning model on genomic sequences, utilizing SLURM
+# for job scheduling and management. It supports both single and multi-GPU execution, with the capability to handle
+# restarts of partially completed jobs and to save various statistics and prediction maps.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - tsv_file: TSV file with positions of sequences to be evaluated.
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_lim_min: Minimum limit for heatmap plotting (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - plot_map: Whether to plot contact maps for each allele (default: False).
+# - out_dir: Output directory for tables and plots (default: "scd").
+# - chrom_sizes: File containing chromosome sizes.
+# - processes: Number of processes for multi-GPU execution.
+# - rc: Average forward and reverse complement predictions (default: False).
+# - shift: Shift the permutation by a specific amount (default: -10000).
+# - stats: Comma-separated list of statistics to save (default: "SCD").
+# - shifts: Ensemble prediction shifts (default: "0").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Batch size for predictions.
+# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
+#
+# Multi-CPU/GPU Parameters:
+# - cpu: Run without a GPU (default: False).
+# - num_cpus: Number of CPUs to use (default: 2).
+# - name: SLURM job name prefix (default: "exp").
+# - max_proc: Maximum concurrent processes.
+# - queue: SLURM queue on which to run the jobs (default: "gpu").
+# - restart: Restart a partially completed job (default: False).
+# - time: Time to run job (default: "01:00:00").
+# - gres: GPU resources (default: "gpu").
+# - constraint: CPU constraints to avoid specific GPUs (default: "[xeon-6130|xeon-2640v4]").
+#
+# Outputs:
+# - Output directory containing results, logs, and pickled options.
+#
+# Example command-line usage:
+# python multiGPU-genomic_shifted_permutation.py params.json model_file.h5 positions.tsv
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)

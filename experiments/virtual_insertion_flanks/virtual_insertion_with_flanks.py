@@ -1,3 +1,31 @@
+# Description:
+# This script processes genomic data using a trained model. It generates predictions for motifs and background sequences, 
+# and stores the results in an HDF5 file. The script supports both single and multi-GPU/CPU environments.
+#
+# Inputs:
+# - <params_file>: Path to the JSON file containing model parameters.
+# - <model_file>: Path to the file containing the trained model.
+# - <motifs_file>: Path to the TSV file with motif positions.
+# - -f, --genome-fasta: Path to the genome FASTA file for sequences [Default: None].
+# - -l, --plot-lim-min: Minimum limit for heatmap plots [Default: 0.1].
+# - --plot-freq: Frequency for heatmap plot updates [Default: 100].
+# - -m, --plot-map: Boolean flag to plot contact maps for each allele [Default: False].
+# - -o, --out-dir: Output directory for tables and plots [Default: "./"].
+# - -p, --processes: Number of processes for multi-GPU/CPU execution [Default: None].
+# - --rc: Boolean flag to average forward and reverse complement predictions [Default: False].
+# - --stats: Comma-separated list of stats to save [Default: "SCD"].
+# - --shifts: Comma-separated list of ensemble prediction shifts [Default: "0"].
+# - -t, --targets-file: File specifying target indexes and labels in table format [Default: None].
+# - --batch-size: Batch size for processing [Default: 4].
+# - --save-maps: Boolean flag to save all maps in the HDF5 file [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+#
+# Outputs:
+# - HDF5 file containing the prediction statistics and, optionally, the prediction maps.
+#
+# Example command-line usage:
+# python virtual_insertion_with_flank.py params.json model.h5 motifs.tsv --genome-fasta genome.fa --plot-map --out-dir results --batch-size 8 --save-maps
+
 from optparse import OptionParser
 import json
 import os
@@ -16,9 +44,11 @@ from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_
 from akita_utils.tsv_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -289,10 +319,10 @@ def main():
 
     genome_open.close()
 
+
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

@@ -1,3 +1,24 @@
+# Description:
+# This script processes CTCF-binding sites from a given genome and generates a TSV file with various experimental data.
+# It fetches sequences from the genome around the CTCF-binding sites, mutates nucleotides, and adds experimental context such as orientation, background indices, and flank/spacer information.
+#
+# Inputs:
+# - --input-tsv-file: Path to the TSV file with CTCF-binding sites.
+# - -f, --genome-fasta: Path to the genome FASTA file [Default: "/project/fudenber_735/genomes/mm10/mm10.fa"].
+# - --lower-df-range: Lower range for filtering CTCF sites by SCD [Default: 1500].
+# - --upper-df-range: Upper range for filtering CTCF sites by SCD [Default: 0].
+# - --orientation-string: String(s) specifying orientation [Default: ">"].
+# - --flank-length: Length of flanking sequences [Default: 15].
+# - --flank-spacer-sum: Sum of flank and spacer lengths [Default: 30].
+# - --backgrounds-indices: Indices of background sequences [Default: "0,1,2,3,4,5,6,7,8,9"].
+# - --output-filename: Filename for the output TSV file [Default: "out.tsv"].
+#
+# Outputs:
+# - A TSV file with experimental data, including orientation, background indices, and flank/spacer information.
+#
+# Example command-line usage:
+# python generate_pairwise_mutagenesis_df.py --input-tsv-file CTCFs.tsv -f genome.fa --lower-df-range 1500 --upper-df-range 0 --orientation-string ">" --flank-length 15 --flank-spacer-sum 30 --backgrounds-indices "0,1,2,3,4" --output-filename experiment_data.tsv
+
 from optparse import OptionParser
 import pandas as pd
 import random
@@ -9,6 +30,7 @@ from akita_utils.tsv_utils import (
     add_diff_flanks_and_const_spacer,
 )
 from akita_utils.dna_utils import dna_rc
+
 
 ################################################################################
 # main
@@ -168,5 +190,6 @@ def main():
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()

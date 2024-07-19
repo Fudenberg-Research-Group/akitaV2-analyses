@@ -1,3 +1,21 @@
+# Description:
+# This script processes a TSV file containing CTCF-binding site coordinates to generate a modified dataset with additional columns.
+# It supports adding orientation strings, background indices, and flank/spacer information.
+#
+# Inputs:
+# - --input-tsv-file: Path to the TSV file with CTCF-binding site coordinates [Default: "/home1/smaruj/akitaX1-analyses/input_data/select_strong_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv"].
+#
+# Options:
+# - --orientation-string: String or list of strings for CTCF orientation [Default: ">"].
+# - --max-number-sites: Maximum number of sites to be inserted [Default: 20].
+# - --flank-length: Length of the flank to be tested [Default: 30].
+# - --flank-spacer-sum: Sum of flank and spacer distances for constant spacing [Default: 90].
+# - --backgrounds-indices: Comma-separated list of background sequence indices [Default: "0,1,2,3,4,5,6,7,8,9"].
+# - --output-filename: Filename for the output TSV file [Default: "out.tsv"].
+#
+# Example command-line usage:
+# python generate_number_insertion_df.py --input-tsv-file input_file.tsv --orientation-string ">" --max-number-sites 20 --flank-length 30 --flank-spacer-sum 90 --backgrounds-indices "0,1,2" --output-filename output_file.tsv
+
 from optparse import OptionParser
 import pandas as pd
 
@@ -7,10 +25,10 @@ from akita_utils.tsv_utils import (
     add_diff_flanks_and_const_spacer,
 )
 
+
 ################################################################################
 # main
 ################################################################################
-
 
 def main():
     usage = "usage: %prog [options]"
@@ -96,9 +114,10 @@ def main():
             options.output_filename, sep="\t", index=False
         )
 
+
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()
-

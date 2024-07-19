@@ -1,3 +1,32 @@
+# Description:
+# This script runs predictions on genomic sequences using a trained model, processes the results, and saves statistical metrics into an HDF5 file. 
+# It supports both single and multi-GPU configurations. The script can handle background sequences, motifs, and various options for output.
+#
+# Inputs:
+# - params_file: JSON file with model parameters.
+# - model_file: Path to the trained model file.
+# - motifs_file: TSV file with motif positions.
+# - options:
+#   - --genome-fasta: Path to the genome FASTA file [Default: None].
+#   - --plot-lim-min: Minimum limit for heatmap plots [Default: 0.1].
+#   - --plot-freq: Frequency of heatmap plotting [Default: 100].
+#   - --plot-map: Boolean to plot contact maps for each allele [Default: False].
+#   - --out-dir: Output directory for tables and plots [Default: ./].
+#   - --processes: Number of processes for multi-GPU setup [Default: None].
+#   - --rc: Boolean to average forward and reverse complement predictions [Default: False].
+#   - --stats: Comma-separated list of stats to save [Default: SCD].
+#   - --shifts: Ensemble prediction shifts [Default: 0].
+#   - --targets-file: File specifying target indexes and labels [Default: None].
+#   - --batch-size: Batch size for predictions [Default: 4].
+#   - --save-maps: Boolean to save all maps in HDF5 files [Default: False].
+#   - --background-file: File with background sequences in FASTA format [Default: None].
+#
+# Outputs:
+# - HDF5 file with statistical metrics for each experiment.
+#
+# Example command-line usage:
+# python virtual_insertion_flank_core_compatibility.py params.json model_file.h5 motifs.tsv --genome-fasta genome.fa --out-dir results/ --batch-size 8 --save-maps
+
 from optparse import OptionParser
 import json
 import os
@@ -16,9 +45,11 @@ from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_
 from akita_utils.tsv_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -289,10 +320,10 @@ def main():
 
     genome_open.close()
 
+
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

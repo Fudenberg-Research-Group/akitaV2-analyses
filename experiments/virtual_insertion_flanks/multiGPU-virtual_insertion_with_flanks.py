@@ -1,3 +1,40 @@
+# Description:
+# This script prepares and launches multiple SLURM jobs for processing genomic data. It sets up job parameters, manages output directories, 
+# and handles both single and multi-GPU/CPU environments. The script also supports restarting partially completed jobs.
+#
+# Inputs:
+# - <params_file>: Path to the JSON file containing model parameters.
+# - <model_file>: Path to the file containing the trained model.
+# - <tsv_file>: Path to the TSV file with genomic data for analysis.
+# - -f, --genome-fasta: Path to the genome FASTA file for sequences [Default: None].
+# - -m, --plot-map: Boolean flag to plot contact maps for each allele [Default: False].
+# - -l, --plot-lim-min: Minimum limit for heatmap plots [Default: 0.1].
+# - --plot-freq: Frequency for heatmap plot updates [Default: 100].
+# - -o, --out-dir: Output directory for tables and plots [Default: "scd"].
+# - --rc: Boolean flag to average forward and reverse complement predictions [Default: False].
+# - --shifts: Comma-separated list of ensemble prediction shifts [Default: "0"].
+# - --stats: Comma-separated list of stats to save [Default: "SCD"].
+# - -t, --targets-file: File specifying target indexes and labels in table format [Default: None].
+# - --batch-size: Batch size for processing [Default: None].
+# - --save-maps: Boolean flag to save all maps in the HDF5 file [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+# - --cpu: Boolean flag to run without a GPU [Default: False].
+# - --num_cpus: Number of CPUs to use [Default: 2].
+# - --name: SLURM job name prefix [Default: "exp"].
+# - --max_proc: Maximum number of concurrent processes [Default: None].
+# - -p, --processes: Number of processes for multi-script execution [Default: None].
+# - -q, --queue: SLURM queue for job execution [Default: "gpu"].
+# - -r, --restart: Boolean flag to restart partially completed jobs [Default: False].
+# - --time: Time allocation for each job [Default: "01:00:00"].
+# - --gres: GPU resources to allocate [Default: "gpu"].
+# - --constraint: CPU constraints to avoid specific GPUs [Default: "[xeon-6130|xeon-2640v4]"].
+#
+# Outputs:
+# - SLURM job scripts for results.
+#
+# Example command-line usage:
+# python multiGPU-virtual_insertion_with_flanks.py --num_cpus 4 --processes 10 --name my_experiment --max_proc 5 --time 02:00:00 --gres gpu --cpu --background-file background_sequences.fa params.json model.h5 tsv_file.tsv
+
 from optparse import OptionParser
 import os
 import pickle
@@ -5,9 +42,11 @@ import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
@@ -239,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

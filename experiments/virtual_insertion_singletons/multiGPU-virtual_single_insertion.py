@@ -1,12 +1,51 @@
+# Description:
+# This script launches SLURM jobs to process single insertions using a deep learning model. It sets up the necessary
+# environment, prepares options, and distributes the workload across multiple processes. It supports both GPU and
+# CPU execution and handles job restart if necessary.
+
+# Inputs:
+# - params_file: JSON file with parameters for the model.
+# - model_file: File containing the trained model.
+# - tsv_file: File specifying the TSV file for the single insertion analysis.
+
+# Options:
+# - --genome_fasta: Genome FASTA file for sequences [Default: None].
+# - --plot_map: Boolean flag to plot contact map for each allele [Default: False].
+# - --plot_lim_min: Minimum limit for heatmap plots [Default: 0.1].
+# - --plot-freq: Frequency for heatmap plot [Default: 100].
+# - --out_dir: Output directory for tables and plots [Default: "scd"].
+# - --rc: Average forward and reverse complement predictions [Default: False].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - --stats: Comma-separated list of statistics to save [Default: "SCD"].
+# - --targets_file: File specifying target indexes and labels [Default: None].
+# - --batch-size: Specify batch size [Default: None].
+# - --save-maps: Save all maps in the H5 file [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+# - --cpu: Run without GPU [Default: False].
+# - --num_cpus: Number of CPUs to use [Default: 2].
+# - --name: SLURM name prefix [Default: "exp"].
+# - --max_proc: Maximum concurrent processes [Default: None].
+# - --processes: Number of processes for multi-processing [Default: None].
+# - --queue: SLURM queue for job execution [Default: "gpu"].
+# - --restart: Restart a partially completed job [Default: False].
+# - --time: Time allocated for the job [Default: "01:00:00"].
+# - --gres: GPU resources to request [Default: "gpu"].
+# - --constraint: CPU constraints to avoid specific GPUs [Default: "[xeon-6130|xeon-2640v4]"].
+
+# Example command-line usage:
+# python multiGPU-virtual_single_insertion.py params.json model.h5 data.tsv
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
@@ -238,3 +277,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

@@ -1,3 +1,36 @@
+# Description:
+# This script prepares and runs predictions using a trained deep learning model on genomic sequences,
+# focusing on motif disruption analysis. It utilizes SLURM for job scheduling and management,
+# supports both single and multi-GPU execution, and handles restarts of partially completed jobs.
+# It saves various statistics and prediction maps, and allows for ensemble predictions.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - motifs_file: File containing motif positions (coordinates).
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_lim_min: Minimum limit for heatmap plotting (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - plot_map: Whether to plot contact maps for each allele (default: False).
+# - out_dir: Output directory for tables and plots (default: "./").
+# - processes: Number of processes for multi-GPU execution.
+# - rc: Average forward and reverse complement predictions (default: False).
+# - stats: Comma-separated list of statistics to save (default: "SCD").
+# - shifts: Ensemble prediction shifts (default: "0").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Batch size for predictions (default: 4).
+# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
+# - split: Number of chunks to split a bin (default: 10).
+# - bin_size: Size of a bin (default: 2048).
+#
+# Outputs:
+# - Output directory containing results, logs, and pickled options.
+#
+# Example command-line usage:
+# python genomic_disruption_sliding_profile.py params.json model_file.h5 motifs_file.csv
+
 from optparse import OptionParser
 import json
 import os
@@ -15,9 +48,11 @@ from akita_utils.seq_gens import sliding_disruption_seq_gen
 from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
 from akita_utils.tsv_utils import split_df_equally
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -308,10 +343,10 @@ def main():
 
     genome_open.close()
 
+
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

@@ -1,3 +1,35 @@
+# Description:
+# This script performs mutagenesis analysis by generating and predicting sequences using a trained deep learning model.
+# It supports both single and multi-GPU execution, handles background sequences, and manages the output of statistical metrics 
+# and optionally, contact maps. The script can process motif positions, predict outcomes, and save results to HDF5 files.
+#
+# Inputs:
+# - <params_file>: JSON file containing model parameters and training details.
+# - <model_file>: Path to the trained deep learning model file.
+# - <motifs_file>: TSV file with motif positions for analysis.
+#
+# Optional Parameters:
+# - -f, --genome-fasta: Path to the genome FASTA file [Default: None].
+# - -l, --plot-lim-min: Minimum limit for heatmap plot [Default: 0.1].
+# - --plot-freq: Frequency of heatmap plots [Default: 100].
+# - -m, --plot-map: Plot contact maps for each allele [Default: False].
+# - -o, --out-dir: Output directory for results [Default: "./"].
+# - -p, --processes: Number of processes for multi-GPU execution [Default: None].
+# - --rc: Average predictions for forward and reverse complement sequences [Default: False].
+# - --stats: Comma-separated list of statistics to save [Default: "SCD"].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - -t, --targets-file: File with target indexes and labels [Default: None].
+# - --batch-size: Batch size for predictions [Default: 4].
+# - --save-maps: Save all contact maps in the H5 file [Default: False].
+# - --background-file: File with background sequences in FASTA format [Default: None].
+#
+# Outputs:
+# - HDF5 file containing statistical metrics for predictions.
+# - Optionally, HDF5 files with contact maps if specified.
+#
+# Example command-line usage:
+# python virtual_insertion_single_mutagenesis.py params.json model.h5 motifs.tsv -f genome.fa --batch-size 8 --save-maps --out-dir ./results
+
 from optparse import OptionParser
 import json
 import os
@@ -16,9 +48,11 @@ from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_
 from akita_utils.tsv_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -289,10 +323,10 @@ def main():
 
     genome_open.close()
 
+
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

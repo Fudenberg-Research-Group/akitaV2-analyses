@@ -1,17 +1,60 @@
+# Description:
+# This script manages the execution of a dot vs. boundary experiment using SLURM to analyze genomic data.
+# It prepares the execution environment, handles job scheduling, and coordinates multiple processes.
+# The script supports both GPU and CPU environments and provides options for plotting and saving results.
+# It also handles job resumption from partial completions and manages SLURM resource allocation.
+#
+# Inputs:
+# - params_file: Path to the parameter file used for the experiment.
+# - model_file: Path to the model file for the experiment.
+# - tsv_file: Path to the TSV file containing genomic data.
+#
+# Options:
+# - -f, --genome_fasta: Path to the genome FASTA file [Default: %default].
+# - -m, --plot_map: Whether to plot contact maps for each allele [Default: %default].
+# - -l, --plot_lim_min: Minimum limit for heatmap plots [Default: %default].
+# - --plot-freq: Frequency for heatmap plotting [Default: %default].
+# - -o, --out_dir: Output directory for tables and plots [Default: %default].
+# - --rc: Whether to average forward and reverse complement predictions [Default: %default].
+# - --shifts: Ensemble prediction shifts [Default: %default].
+# - --stats: Comma-separated list of statistics to save [Default: %default].
+# - -t, --targets_file: File specifying target indexes and labels in table format.
+# - --batch-size: Batch size for processing [Default: %default].
+# - --background-file: File with insertion sequences in FASTA format [Default: %default].
+# - --save-maps: Whether to save all maps in the H5 file [Default: %default].
+# - --cpu: Whether to run without a GPU [Default: %default].
+# - --num_cpus: Number of CPUs to use [Default: %default].
+# - --name: SLURM name prefix [Default: %default].
+# - --max_proc: Maximum number of concurrent processes [Default: %default].
+# - -p, --processes: Number of processes to run.
+# - -q, --queue: SLURM queue for job submission [Default: %default].
+# - -r, --restart: Whether to restart a partially completed job [Default: %default].
+# - --time: Time limit for the job [Default: %default].
+# - --gres: GPU resources to allocate [Default: %default].
+# - --constraint: CPU constraints to avoid specific GPU types [Default: %default].
+#
+# Outputs:
+# - Creates an output directory containing result files.
+# - Generates job scripts for SLURM and manages their execution.
+#
+# Example command-line usage:
+# python multiGPU_dots_vs_boundary_scenario.py params.pkl model.h5 data.tsv -f /path/to/genome.fa -o results --rc --shifts "1,2" -t targets.tsv --batch-size 32 --background-file backgrounds.fa --save-maps --cpu --num_cpus 4 --name experiment --max_proc 10 -p 4 -q gpu --restart --time 02:00:00 --gres gpu --constraint "[xeon-6130|xeon-2640v4]"
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
 
-    # scd
     parser.add_option(
         "-f",
         dest="genome_fasta",

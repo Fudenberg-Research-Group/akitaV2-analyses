@@ -1,3 +1,22 @@
+# Description:
+# This script processes a TSV file containing CTCF-binding site coordinates by generating orientations, assigning background indices, 
+# and adding flank and spacer information. The processed data is then saved to a new TSV file.
+#
+# Inputs:
+# - --input-tsv-file: Path to the input TSV file with CTCF-binding site coordinates [Default: /home1/smaruj/akitaX1-analyses/input_data/select_strong_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv].
+# - --num-inserts: Number of inserts (core + flanks) to be inserted into a background sequence [Default: 6].
+# - --flank-length: Range of right and left flank to be tested [Default: 30].
+# - --flank-spacer-sum: Sum of flank and spacer distances to keep distances between CTCFs constant [Default: 90].
+# - --backgrounds-indices: Comma-separated indices of background sequences [Default: "0,1,2,3,4,5,6,7,8,9"].
+# - --num-ctcf-sites: Number of CTCF sites to be tested [Default: 100].
+# - --output-filename: Filename for the output TSV file [Default: "out.tsv"].
+#
+# Outputs:
+# - TSV file with additional columns for orientation, background index, and flank/spacer information.
+#
+# Example command-line usage:
+# python generate_insulation_oddset_orientation_df.py --input-tsv-file input.tsv --num-inserts 6 --flank-length 30 --flank-spacer-sum 90 --backgrounds-indices "0,1,2,3" --num-ctcf-sites 100 --output-filename processed_ctcfs.tsv
+
 from optparse import OptionParser
 import pandas as pd
 import numpy as np
@@ -13,7 +32,6 @@ from akita_utils.tsv_utils import (
 ################################################################################
 # helper function
 ################################################################################
-
 
 def generate_orientations(num_sites):
     orientations = []
@@ -41,7 +59,6 @@ def generate_orientations(num_sites):
 ################################################################################
 # main
 ################################################################################
-
 
 def main():
     usage = "usage: %prog [options]"
@@ -133,9 +150,10 @@ def main():
             options.output_filename, sep="\t", index=False, header=True
         )
 
+
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()
-

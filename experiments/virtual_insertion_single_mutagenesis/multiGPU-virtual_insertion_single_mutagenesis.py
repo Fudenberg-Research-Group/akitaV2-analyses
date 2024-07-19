@@ -1,12 +1,55 @@
+# Description:
+# This script sets up and submits SLURM jobs for running multiple instances of a mutagenesis analysis script. 
+# It prepares the environment by creating necessary directories and pickling the options, then launches the jobs 
+# with the specified configurations, including CPU or GPU resources, job naming, and resource constraints.
+#
+# Inputs:
+# - <params_file>: JSON file containing parameters for the analysis.
+# - <model_file>: Path to the trained model file.
+# - <tsv_file>: TSV file containing input data for the analysis.
+#
+# Optional Parameters:
+# - -f, --genome-fasta: Path to the genome FASTA file [Default: None].
+# - -m, --plot-map: Whether to plot contact maps for each allele [Default: False].
+# - -l, --plot-lim-min: Heatmap plot limit [Default: 0.1].
+# - --plot-freq: Frequency of heatmap plots [Default: 100].
+# - -o, --out-dir: Output directory for tables and plots [Default: "scd"].
+# - --rc: Average forward and reverse complement predictions [Default: False].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - --stats: Comma-separated list of stats to save [Default: "SCD"].
+# - -t, --targets-file: File specifying target indexes and labels [Default: None].
+# - --batch-size: Batch size for predictions [Default: None].
+# - --save-maps: Save all maps in the H5 file [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+# - --cpu: Run without a GPU [Default: False].
+# - --num_cpus: Number of CPUs to use [Default: 2].
+# - --name: SLURM job name prefix [Default: "exp"].
+# - --max_proc: Maximum number of concurrent processes [Default: None].
+# - -p, --processes: Number of processes to run [Default: None].
+# - -q, --queue: SLURM queue to run the jobs on [Default: "gpu"].
+# - --restart: Restart a partially completed job [Default: False].
+# - --time: Time to run each job [Default: "01:00:00"].
+# - --gres: GPU resources to request [Default: "gpu"].
+# - --constraint: CPU constraints to avoid specific GPUs [Default: "[xeon-6130|xeon-2640v4]"].
+#
+# Outputs:
+# - SLURM job scripts for each process with specified resource allocations and constraints.
+# - Output and error logs for each job in the specified output directory.
+#
+# Example command-line usage:
+# python multiGPU-virtual_single_mutagenesis.py params.json model.h5 input_data.tsv -f genome.fa --batch-size 8 --save-maps --cpu --num_cpus 4 --name my_experiment --max_proc 10 --queue gpu --time 02:00:00 --gres gpu:1 --constraint "[xeon-6130|xeon-2640v4]"
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
@@ -238,3 +281,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

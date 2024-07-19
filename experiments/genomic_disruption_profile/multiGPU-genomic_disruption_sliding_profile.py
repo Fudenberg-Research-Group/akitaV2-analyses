@@ -1,12 +1,58 @@
+# Description:
+# This script prepares and launches predictions using a trained deep learning model on genomic sequences,
+# focusing on motif disruption analysis. It utilizes SLURM for job scheduling and management,
+# supports both single and multi-GPU execution, and handles restarts of partially completed jobs.
+# It saves various statistics and prediction maps, and allows for ensemble predictions.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - tsv_file: File containing genomic positions (coordinates) in TSV format.
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_map: Whether to plot contact maps for each allele (default: False).
+# - plot_lim_min: Minimum limit for heatmap plotting (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - out_dir: Output directory for tables and plots (default: "scd").
+# - rc: Average forward and reverse complement predictions (default: False).
+# - shifts: Ensemble prediction shifts (default: "0").
+# - stats: Comma-separated list of statistics to save (default: "SCD").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Batch size for predictions.
+# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
+# - split: Number of chunks to split a bin (default: 10).
+# - bin_size: Size of a bin (default: 2048).
+#
+# SLURM-specific Parameters:
+# - cpu: Run without a GPU (default: False).
+# - num_cpus: Number of CPUs to use (default: 2).
+# - name: SLURM job name prefix (default: "exp").
+# - max_proc: Maximum concurrent processes.
+# - processes: Number of processes for multi-GPU execution.
+# - queue: SLURM queue to run the jobs (default: "gpu").
+# - restart: Restart a partially completed job (default: False).
+# - time: Maximum time for job execution (default: "01:00:00").
+# - gres: GPU resources (default: "gpu").
+# - constraint: CPU constraints to avoid specific GPU types (default: "[xeon-6130|xeon-2640v4]").
+#
+# Outputs:
+# - Output directory containing results, logs, and pickled options.
+#
+# Example command-line usage:
+# python multiGPU-genomic_disruption_sliding_profile.py params.json model_file.h5 motifs.tsv
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
@@ -244,3 +290,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

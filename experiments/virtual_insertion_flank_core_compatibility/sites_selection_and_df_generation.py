@@ -1,3 +1,21 @@
+# Description:
+# This script processes a TSV file containing CTCF-binding site coordinates and generates new TSV files with various permutations of the input data. It adds orientation, flanks, spacers, and background indices to the data and saves the results into separate output files for each background index.
+#
+# Inputs:
+# - --input-tsv-file: Path to the TSV file with coordinates of CTCF-binding sites in the genome [Default: /home1/smaruj/akitaX1-analyses/input_data/downsample_CTCFs/output/CTCFs_jaspar_filtered_mm10_strong.tsv].
+# - --orientation-string: String or list of strings specifying the orientation to be tested for each CTCF [Default: >].
+# - --flank-range: Range of right and left flanks to be tested, given as "left_flank,right_flank" [Default: 30,30].
+# - --flank-spacer-sum: Sum of flank and spacer distances to keep the distances between consecutive CTCFs constant [Default: 90].
+# - --backgrounds-indices: Comma-separated list of background sequence indices into which CTCFs will be inserted [Default: 0,1,2,3,4,5,6,7,8,9].
+# - --output-filename: Filename for the output TSV files [Default: out.tsv].
+# - --all-permutations: Whether to test all possible permutations of the provided orientation string [Default: False].
+#
+# Outputs:
+# - Multiple TSV files, each named with a background index, containing processed CTCF-binding site data.
+#
+# Example command-line usage:
+# python sites_selection_and_df_generation.py --input-tsv-file /path/to/input.tsv --orientation-string "><" --flank-range "20,40" --flank-spacer-sum 80 --backgrounds-indices "0,1,2" --output-filename processed_data.tsv --all-permutations
+
 from optparse import OptionParser
 import pandas as pd
 
@@ -8,10 +26,10 @@ from akita_utils.tsv_utils import (
 )
 from akita_utils.analysis_utils import split_by_percentile_groups
 
+
 ################################################################################
 # main
 ################################################################################
-
 
 def main():
     usage = "usage: %prog [options]"
@@ -115,11 +133,13 @@ def main():
             )
         
         combined_df_with_background.to_csv(
-                options.output_filename.split(".")[0] + "bg_" + str(background_index) + "." + options.output_filename.split(".")[1], sep="\t", index=False
-            )
+                options.output_filename.split(".")[0] + "bg_" + str(background_index) + "." + options.output_filename.split(".")[1], sep="\t", index=False)
+        
 
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()
+    

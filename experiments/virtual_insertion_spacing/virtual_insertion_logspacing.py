@@ -1,3 +1,33 @@
+# Description:
+# This script processes genome sequences using a deep learning model. It reads model parameters, loads motifs and
+# background sequences, performs predictions, and writes results to an HDF5 file. It supports both single and
+# multi-GPU configurations. It initializes the output directories and files, handles data preparation, and performs
+# predictions using a specified model. The script supports various options for saving plots and statistics.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: File with the trained deep learning model.
+# - motifs_file: File containing motif positions in TSV format.
+#
+# Options:
+# - -f, --genome_fasta: Genome FASTA file for sequences [Default: None].
+# - -l, --plot_lim_min: Minimum limit for heatmap plots [Default: 0.1].
+# - --plot-freq: Frequency for heatmap plots [Default: 100].
+# - -m, --plot_map: Boolean flag to plot contact map for each allele [Default: False].
+# - -o, --out_dir: Output directory for tables and plots [Default: "./"].
+# - -p, --processes: Number of processes for parallel execution [Default: None].
+# - --rc: Average forward and reverse complement predictions [Default: False].
+# - --stats: Comma-separated list of statistics to save [Default: "SCD"].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - -t, --targets_file: File specifying target indexes and labels [Default: None].
+# - --batch-size: Batch size for predictions [Default: 4].
+# - --save-maps: Save all maps in the H5 file [Default: False].
+# - --background-file: File with background sequences in FASTA format [Default: None].
+#
+# Example command-line usage:
+# python virtual_insertion_logspacing.py params.json model.h5 motifs.tsv
+# python virtual_insertion_logspacing.py options.pkl params.json model.h5 motifs.tsv 0
+
 from optparse import OptionParser
 import json
 import os
@@ -16,9 +46,11 @@ from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_
 from akita_utils.tsv_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -289,10 +321,10 @@ def main():
 
     genome_open.close()
 
+
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

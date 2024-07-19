@@ -1,3 +1,29 @@
+# Description:
+# This script processes a TSV file containing coordinates of CTCF-binding sites in a specified genome.
+# It adds background sequences, orientations, and spacers to generate two scenarios: boundary and dot.
+# The processed data is saved to separate output files for each scenario.
+#
+# Inputs:
+# - input_tsv_file: Path to the input TSV file with coordinates of CTCF-binding sites.
+# - flank_length: Length of flanking sequences to be added around CTCF sites.
+# - boundary_orientation_string: Orientation string for the boundary scenario.
+# - boundary_spacer: Spacer length for the boundary scenario.
+# - dot_orientation_string: Orientation string for the dot scenario.
+# - dot_spacer: Spacer length for the dot scenario.
+# - backgrounds_indices: Comma-separated list of background sequence indices for CTCF insertion.
+# - boundary_output_filename: Filename for the boundary scenario output.
+# - dot_output_filename: Filename for the dot scenario output.
+#
+# Outputs:
+# - Two TSV files containing processed CTCF-binding site data with added background sequences, orientations, and spacers:
+#   1. boundary_output_filename: Output file for the boundary scenario.
+#   2. dot_output_filename: Output file for the dot scenario.
+#
+# Example command-line usage:
+# python generate_tsv_dot_boundary_scenario.py --input-tsv-file CTCFs.tsv --flank-length 30 --boundary-orientation-string "<>"
+# --boundary-spacer 60 --dot-orientation-string "><" --dot-spacer 199970 --backgrounds-indices "0,1,2,3,4,5,6,7,8,9"
+# --boundary-output-filename boundary_out.tsv --dot-output-filename dot_out.tsv
+
 from optparse import OptionParser
 import pandas as pd
 
@@ -7,10 +33,10 @@ from akita_utils.tsv_utils import (
     add_const_flank_and_diff_spacer,
 )
 
+
 ################################################################################
 # main
 ################################################################################
-
 
 def main():
     usage = "usage: %prog [options]"
@@ -134,8 +160,11 @@ def main():
             options.dot_output_filename, sep="\t", index=False
         )
 
+
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()
+    

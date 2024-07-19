@@ -1,12 +1,53 @@
+# Description:
+# This script manages the submission of SLURM jobs for a given analysis, supporting both GPU and CPU resources.
+# It prepares the environment, manages job submissions, and handles restart capabilities if needed.
+#
+# Inputs:
+# - <params_file>: JSON file containing parameters for the analysis.
+# - <model_file>: Path to the model file.
+# - <tsv_file>: Path to the TSV file with additional input data.
+#
+# Optional Parameters:
+# - -f, --genome-fasta: Path to the genome FASTA file [Default: None].
+# - -m, --plot-map: Whether to plot contact maps for each allele [Default: False].
+# - -l, --plot-lim-min: Heatmap plot limit [Default: 0.1].
+# - --plot-freq: Frequency of heatmap plots [Default: 100].
+# - -o, --out-dir: Output directory for tables and plots [Default: "scd"].
+# - --rc: Average forward and reverse complement predictions [Default: False].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - --stats: List of stats to save, comma-separated [Default: "SCD"].
+# - -t, --targets-file: File specifying target indexes and labels [Default: None].
+# - --batch-size: Specify batch size [Default: None].
+# - --save-maps: Save all maps in the H5 file [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+# - --cpu: Run without a GPU [Default: False].
+# - --num_cpus: Number of CPUs to use [Default: 2].
+# - --name: SLURM job name prefix [Default: "exp"].
+# - --max_proc: Maximum number of concurrent processes [Default: None].
+# - -p, --processes: Number of processes for parallel execution [Default: None].
+# - -q, --queue: SLURM queue to run jobs on [Default: "gpu"].
+# - -r, --restart: Restart a partially completed job [Default: False].
+# - --time: Time allocated for each job [Default: "01:00:00"].
+# - --gres: GPU resources requested [Default: "gpu"].
+# - --constraint: Constraints to avoid certain GPUs [Default: "[xeon-6130|xeon-2640v4]"].
+#
+# Outputs:
+# - SLURM job submissions are created for each process, with logs directed to specified output and error files.
+#
+# Example command-line usage:
+# python multiGPU-virtual_insertiom_pairwise_mutagenesis.py params.json model.h5 input_data.tsv -f genome.fa --cpu --num_cpus 4 --name my_experiment --max_proc 10 -p 5 -q gpu --time 02:00:00 --gres gpu --constraint "[xeon-6130]"
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
@@ -238,3 +279,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

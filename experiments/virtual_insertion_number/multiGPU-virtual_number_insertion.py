@@ -1,12 +1,52 @@
+# Description:
+# This script prepares and submits SLURM jobs for running a specified Python script with given parameters and model files.
+# It sets up the environment, manages job submissions for both CPU and GPU resources, and handles job options.
+#
+# Inputs:
+# - <params_file>: Path to the parameters file (JSON format) used by the Python script.
+# - <model_file>: Path to the model file to be used by the Python script.
+# - <tsv_file>: Path to the TSV file containing data to be processed by the Python script.
+#
+# Options:
+# - -f, --genome-fasta: Genome FASTA file for sequences [Default: None].
+# - -m, --plot-map: Plot contact map for each allele [Default: False].
+# - -l, --plot-lim-min: Heatmap plot limit [Default: 0.1].
+# - --plot-freq: Heatmap plot frequency [Default: 100].
+# - -o, --out-dir: Output directory for tables and plots [Default: "scd"].
+# - --rc: Average forward and reverse complement predictions [Default: False].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - --stats: Comma-separated list of stats to save [Default: "SCD"].
+# - -t, --targets-file: File specifying target indexes and labels in table format [Default: None].
+# - --batch-size: Specify batch size [Default: None].
+# - --save-maps: Save all the maps in the HDF5 file for all inserts, all backgrounds used, and all targets [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+#
+# Multi-process and SLURM-specific options:
+# - --cpu: Run without a GPU [Default: False].
+# - --num_cpus: Number of CPUs [Default: 2].
+# - --name: SLURM name prefix [Default: "exp"].
+# - --max_proc: Maximum number of concurrent processes [Default: None].
+# - -p, --processes: Number of processes to be passed to the Python script [Default: None].
+# - -q, --queue: SLURM queue on which to run the jobs [Default: "gpu"].
+# - -r, --restart: Restart a partially completed job [Default: False].
+# - --time: Time to run the job [Default: "01:00:00"].
+# - --gres: GPU resources [Default: "gpu"].
+# - --constraint: CPU constraints to avoid specific GPUs [Default: "[xeon-6130|xeon-2640v4]"].
+#
+# Example command-line usage:
+# python multiGPU-virtual_number_insertion.py -f genome.fa --out-dir results --rc --stats "SCD" -t targets.tsv --batch-size 8 --background-file background.fa --cpu --num_cpus 4 --name my_experiment --max_proc 10 -p 4 -q gpu --time "02:00:00" --gres "gpu:1" --constraint "[xeon-6130]" <params_file> <model_file> <tsv_file>
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)
@@ -238,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

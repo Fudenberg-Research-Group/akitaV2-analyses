@@ -1,3 +1,38 @@
+# Description:
+# This script manages the execution of dot vs. boundary experiment using a deep learning model.
+# It processes sequences from specified FASTA and TSV files, performs predictions, and saves the results.
+# The script supports both single and multi-GPU configurations and provides options for saving statistical metrics and contact maps.
+# It utilizes TensorFlow for model operations and handles background sequence predictions as well as motif-based predictions.
+#
+# Inputs:
+# - params_file: Path to the JSON file containing model and training parameters.
+# - model_file: Path to the file containing the trained model.
+# - motifs_file: Path to the TSV file with motif positions.
+#
+# Options:
+# - -f, --genome_fasta: Path to the genome FASTA file [Default: %default].
+# - -l, --plot_lim_min: Minimum limit for heatmap plots [Default: %default].
+# - --plot-freq: Frequency for heatmap plotting [Default: %default].
+# - -m, --plot_map: Whether to plot contact maps for each allele [Default: %default].
+# - -o, --out_dir: Output directory for tables and plots [Default: %default].
+# - -p, --processes: Number of processes for multi-GPU setup.
+# - --rc: Whether to average forward and reverse complement predictions [Default: %default].
+# - --stats: Comma-separated list of statistics to save [Default: %default].
+# - --shifts: Ensemble prediction shifts [Default: %default].
+# - -t, --targets_file: File specifying target indexes and labels in table format.
+# - --batch-size: Batch size for processing [Default: %default].
+# - --background-file: File with insertion sequences in FASTA format [Default: %default].
+# - --save-maps: Whether to save all maps in the H5 file [Default: %default].
+
+# Outputs:
+# - Creates an output directory with the following files:
+#   - Stat H5 file containing statistical metrics for predictions.
+#   - Optionally, maps H5 file with saved contact maps for reference and inserted sequences.
+# - Generates log files for process execution.
+#
+# Example command-line usage:
+# python virtual_symmetric_experiment_dots_vs_boundaries.py params.json model.h5 motifs.tsv -f /path/to/genome.fa -m -o results --rc --shifts "1,2" -t targets.tsv --batch-size 16 --background-file backgrounds.fa --save-maps -p 4
+
 from __future__ import print_function
 from optparse import OptionParser
 import json
@@ -30,9 +65,11 @@ from akita_utils.h5_utils import (
     write_maps_to_h5,
 )
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -373,7 +410,6 @@ def main():
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

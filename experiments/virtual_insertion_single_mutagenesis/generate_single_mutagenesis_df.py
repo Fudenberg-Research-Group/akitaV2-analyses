@@ -1,3 +1,27 @@
+# Description:
+# This script generates experimental data for CTCF binding sites by extracting sequences from a genome FASTA file,
+# mutating nucleotides, and adding additional experimental parameters. The processed data is then saved to a TSV file.
+#
+# Inputs:
+# - --genome-fasta: Path to the genome FASTA file containing the reference genome sequences.
+# - --input-tsv-file: TSV file with coordinates of CTCF-binding sites in the genome.
+#
+# Optional Parameters:
+# - --lower-df-range: Lower index of the DataFrame range to include [Default: 1500].
+# - --upper-df-range: Upper index of the DataFrame range to include [Default: 0].
+# - --orientation-string: Orientation strings to test for each CTCF [Default: ">"].
+# - --flank-length: Length of flanking sequences around each CTCF binding site [Default: 15].
+# - --flank-spacer-sum: Sum of flank and spacer lengths to maintain constant distances between CTCF binding sites [Default: 30].
+# - --backgrounds-indices: Indices of background sequences for insertion [Default: "0,1,2,3,4,5,6,7,8,9"].
+# - --output-filename: Filename for saving the output TSV file [Default: "out.tsv"].
+#
+# Outputs:
+# - TSV file containing the generated experimental data with additional columns for orientation, background indices,
+#   and flank/spacer information.
+#
+# Example command-line usage:
+# python generate_single_mutagenesis_df.py --genome-fasta genome.fa --input-tsv-file CTCFs.tsv --lower-df-range 1000 --upper-df-range 2000 --orientation-string ">" --flank-length 20 --flank-spacer-sum 40 --backgrounds-indices "0,1,2" --output-filename experiment_data.tsv
+
 from optparse import OptionParser
 import pandas as pd
 import random
@@ -9,6 +33,7 @@ from akita_utils.tsv_utils import (
     add_diff_flanks_and_const_spacer,
 )
 from akita_utils.dna_utils import dna_rc
+
 
 ################################################################################
 # main
@@ -161,5 +186,6 @@ def main():
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()

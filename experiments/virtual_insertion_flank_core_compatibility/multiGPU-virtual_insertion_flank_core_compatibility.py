@@ -1,12 +1,56 @@
+# Description:
+# This script manages the execution of the flank-core compatibility experiment in a SLURM-managed cluster environment. 
+# It prepares the environment for running a specific Python script in parallel across multiple nodes or GPUs.
+# The script handles job submission, manages output directories, and supports job resumption.
+#
+# Inputs:
+# - params_file: Path to the JSON file containing model parameters.
+# - model_file: Path to the file containing the trained model.
+# - tsv_file: Path to the TSV file with input data.
+#
+# Options:
+# - -f, --genome_fasta: Path to the genome FASTA file [Default: %default].
+# - -m, --plot_map: Whether to plot contact maps for each allele [Default: %default].
+# - -l, --plot_lim_min: Minimum limit for heatmap plots [Default: %default].
+# - --plot-freq: Frequency for heatmap plotting [Default: %default].
+# - -o, --out_dir: Output directory for tables and plots [Default: %default].
+# - --rc: Whether to average forward and reverse complement predictions [Default: %default].
+# - --shifts: Ensemble prediction shifts [Default: %default].
+# - --stats: Comma-separated list of statistics to save [Default: %default].
+# - -t, --targets_file: File specifying target indexes and labels in table format.
+# - --batch-size: Batch size for processing [Default: %default].
+# - --save-maps: Whether to save all maps in the H5 file [Default: %default].
+# - --background-file: File with insertion sequences in FASTA format [Default: %default].
+# - --cpu: Run without a GPU [Default: %default].
+# - --num_cpus: Number of CPUs to use [Default: %default].
+# - --name: SLURM job name prefix [Default: %default].
+# - --max_proc: Maximum number of concurrent processes [Default: %default].
+# - -p, --processes: Number of processes for multi-script setup.
+# - -q, --queue: SLURM queue to run jobs on [Default: %default].
+# - -r, --restart: Whether to restart a partially completed job [Default: %default].
+# - --time: Time allocation for each job [Default: %default].
+# - --gres: GPU resources required [Default: %default].
+# - --constraint: Constraints for CPU to avoid specific GPUs [Default: %default].
+#
+# Outputs:
+# - Creates an output directory.
+# - Submits SLURM jobs to execute the specified Python script (`virtual_insertion_flank_core_compatibility.py`).
+# - Supports job resumption if partially completed.
+#
+# Example command-line usage:
+# python multiGPU-virtual_insertion_flank_core_compatibility.py params.json model.h5 input_data.tsv -f /path/to/genome.fa -m -o results --rc --shifts "1,2" -t targets.tsv --batch-size 16 --save-maps --cpu --num_cpus 4 --name my_experiment --max_proc 10 -q gpu --time 02:00:00 --gres gpu --constraint "[xeon-6130|xeon-2640v4]"
+
 from optparse import OptionParser
 import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
     parser = OptionParser(usage)

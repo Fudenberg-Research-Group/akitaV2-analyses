@@ -1,3 +1,38 @@
+# Description:
+# This script processes genomic sequences using a deep learning model, generating predictions and statistical metrics. 
+# It supports both single and multi-GPU configurations, and can handle different input data and options for saving outputs.
+#
+# Inputs:
+# - <params_file>: Path to the JSON file containing model parameters.
+# - <model_file>: Path to the model file for predictions.
+# - <motifs_file>: Path to the TSV file with motif positions to be processed.
+#
+# Options:
+# - -f, --genome-fasta: Genome FASTA file for sequences [Default: None].
+# - -l, --plot-lim-min: Minimum limit for heatmap plots [Default: 0.1].
+# - --plot-freq: Frequency for heatmap plots [Default: 100].
+# - -m, --plot-map: Plot contact maps for each allele [Default: False].
+# - -o, --out-dir: Output directory for saving results [Default: "./"].
+# - -p, --processes: Number of processes for multi-GPU or multi-core execution [Default: None].
+# - --rc: Average predictions for forward and reverse complements [Default: False].
+# - --stats: Comma-separated list of statistics to save [Default: "SCD"].
+# - --shifts: Ensemble prediction shifts [Default: "0"].
+# - -t, --targets-file: File with target indexes and labels in table format [Default: None].
+# - --batch-size: Specify batch size for predictions [Default: 4].
+# - --save-maps: Save all maps in HDF5 file for all inserts, backgrounds, and targets [Default: False].
+# - --background-file: File with insertion sequences in FASTA format [Default: None].
+#
+# Multi-GPU-specific options:
+# - <options_pkl_file>: Path to the pickle file with options for multi-GPU execution [Default: None].
+# - -q, --queue: SLURM queue for job execution [Default: "gpu"].
+# - -r, --restart: Restart partially completed jobs [Default: False].
+# - --time: Time limit for the job [Default: "01:00:00"].
+# - --gres: GPU resources required [Default: "gpu"].
+# - --constraint: Constraints to avoid specific GPUs [Default: "[xeon-6130|xeon-2640v4]"].
+#
+# Example command-line usage:
+# python script.py --genome-fasta genome.fa --plot-map --out-dir results --rc --stats "SCD" --targets-file targets.tsv --batch-size 8 --save-maps --background-file background.fa --processes 4 -q gpu --time "02:00:00" --gres "gpu:1" --constraint "[xeon-6130]" <params_file> <model_file> <motifs_file>
+
 from optparse import OptionParser
 import json
 import os
@@ -16,9 +51,11 @@ from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_
 from akita_utils.tsv_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
+
 ################################################################################
 # main
 ################################################################################
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -289,10 +326,10 @@ def main():
 
     genome_open.close()
 
+
 ################################################################################
 # __main__
 ################################################################################
-
 
 if __name__ == "__main__":
     main()

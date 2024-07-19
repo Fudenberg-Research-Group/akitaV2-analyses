@@ -1,3 +1,35 @@
+# Description:
+# This script generates predictions using a trained deep learning model, saves statistical metrics, and optionally 
+# prediction maps. It reads model parameters, a model file, and a motifs file with sequence information. The script 
+# supports multi-GPU execution and can handle restarts of partially completed jobs.
+#
+# Inputs:
+# - params_file: JSON file containing model parameters.
+# - model_file: Model file to be used for predictions.
+# - motifs_file: CSV file with motif sequence information.
+#
+# Parameters:
+# - genome_fasta: Genome FASTA file for sequences.
+# - plot_lim_min: Minimum limit for heatmap plotting (default: 0.1).
+# - plot_freq: Frequency of heatmap plotting (default: 100).
+# - plot_map: Whether to plot contact maps for each allele (default: False).
+# - out_dir: Output directory for tables and plots (default: "./").
+# - chrom_sizes: File containing chromosome sizes.
+# - processes: Number of processes for multi-GPU execution.
+# - rc: Average forward and reverse complement predictions (default: False).
+# - stats: Comma-separated list of stats to save (default: "SCD").
+# - shifts: Ensemble prediction shifts (default: "0").
+# - targets_file: File specifying target indexes and labels in table format.
+# - batch_size: Batch size for predictions (default: 4).
+# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
+#
+# Outputs:
+# - HDF5 file containing predictions and statistical metrics.
+# - Optionally, prediction maps and related files in the specified output directory.
+#
+# Example command-line usage:
+# python genomic_disruption_reverse_complement.py params.json model_file.h5 motifs.csv
+
 from optparse import OptionParser
 import json
 import os

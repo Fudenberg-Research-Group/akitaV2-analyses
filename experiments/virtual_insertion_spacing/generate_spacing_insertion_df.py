@@ -1,3 +1,21 @@
+# Description:
+# This script processes a TSV file of CTCF-binding site coordinates by adding orientation, background index,
+# flanking regions, and varying spacer lengths. It generates a processed TSV file with additional columns 
+# for these features, allowing for more detailed analysis of CTCF-binding sites.
+#
+# Inputs:
+# - --input-tsv-file: Path to the TSV file with CTCF-binding site coordinates [Default: "/home1/smaruj/akitaX1-analyses/input_data/select_top20percent/output/CTCFs_jaspar_filtered_mm10_top20percent.tsv"].
+# - --orientation-string: Orientation string or list of orientation strings to be tested [Default: ">>"].
+# - --flank-length: Length of the flanking regions to be tested [Default: 30].
+# - --space-range: Range of spacing values to be tested [Default: "1,1000"].
+# - --num_log-intervals: Number of intervals to divide the spacing range into [Default: 400].
+# - --backgrounds-indices: Indices of background sequences for CTCF insertion [Default: "0,1,2,3,4,5,6,7,8,9"].
+# - --output-filename: Filename for the processed output TSV file [Default: "out.tsv"].
+# - --all-permutations: Boolean flag to test all possible permutations of the provided orientation string [Default: False].
+#
+# Example command-line usage:
+# python generate_spacing_insertion_df.py --input-tsv-file input.tsv --orientation-string ">>" --flank-length 30 --space-range "1,1000" --num_log-intervals 400 --backgrounds-indices "0,1,2,3,4,5,6,7,8,9" --output-filename processed_output.tsv --all-permutations
+
 from optparse import OptionParser
 import pandas as pd
 import numpy as np
@@ -12,7 +30,6 @@ from akita_utils.tsv_utils import (
 ################################################################################
 # main
 ################################################################################
-
 
 def main():
     usage = "usage: %prog [options]"
@@ -116,9 +133,10 @@ def main():
             options.output_filename, sep="\t", index=False
         )
 
+
 ################################################################################
 # __main__
 ################################################################################
+
 if __name__ == "__main__":
     main()
-
