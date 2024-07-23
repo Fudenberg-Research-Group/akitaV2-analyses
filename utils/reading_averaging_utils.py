@@ -275,7 +275,58 @@ def summarize_average_models_dot_boundary(data_dir, models_number, head_index=1,
     return df_summary
 
 
-# move dots here 
+def summarize_dot_anchors_data(data_dir, head_index=1, columns_to_keep=["chrom", "end", "start", "strand"], ignore_keys=[]):
+    def process_data(model_index, data_type, stats, include_extra_columns=False):
+        print(f"- processing {data_type} data from model {model_index}")
+        df_bg04 = h5_to_df(f"{data_dir}/model_{model_index}_{data_type}_bg04.h5", stats, ignore_keys=ignore_keys, average=False)
+        df_bg59 = h5_to_df(f"{data_dir}/model_{model_index}_{data_type}_bg59.h5", stats, ignore_keys=ignore_keys, average=False)
+        df = pd.concat([df_bg04, df_bg59]).reset_index(drop=True)
+        
+        df_ave = average_stat_over_targets(df, model_index=model_index, head_index=head_index, stat=stats[0])
+        for stat in stats[1:]:
+            df_ave[f"{stat}_m{model_index}"] = average_stat_over_targets(df, model_index=model_index, head_index=head_index, stat=stat)[f"{stat}_m{model_index}"]
+
+        if include_extra_columns:
+            extra_columns = ["DETECTION_SCALE", "FDR"]
+            for col in extra_columns:
+                df_ave[col] = df[col]
+
+        return df_ave
+
+    def add_data_to_summary(df_ave, model_index, data_type, stats):
+        for stat in stats:
+            summary_df[f"{stat}_{data_type}_m{model_index}"] = average_stat_over_backgrounds(df_ave, model_index=model_index, head_index=head_index, stat=stat, columns_to_keep=columns_to_keep)[f"{stat}_m{model_index}"]
+
+    # Boundary Data
+    boundary_stats = ["SCD", "INS-16", "INS-64"]
+    df_B_ave = process_data(0, "boundary", boundary_stats)
+    summary_df = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="SCD", columns_to_keep=columns_to_keep)[["chrom", "end", "start", "strand", "SCD_m0"]]
+    summary_df = summary_df.rename(columns={"SCD_m0": "SCD_B_m0"})
+    for stat in boundary_stats[1:]:
+        summary_df[f"{stat}_B_m0"] = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat=stat, columns_to_keep=columns_to_keep)[f"{stat}_m0"]
+
+    for model_index in range(1, 4):
+        df_B_ave = process_data(model_index, "boundary", boundary_stats)
+        add_data_to_summary(df_B_ave, model_index, "B", boundary_stats)
+
+    # Dot Data
+    dot_stats = ["SCD", "dot-score", "cross-score", "x-score"]
+    df_D_ave = process_data(0, "dot", dot_stats, include_extra_columns=True)
+    for stat in dot_stats:
+        summary_df[f"{stat}_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat=stat, columns_to_keep=columns_to_keep)[f"{stat}_m0"]
+
+    summary_df["DETECTION_SCALE"] = df_D_ave["DETECTION_SCALE"]
+    summary_df["FDR"] = df_D_ave["FDR"]
+
+    for model_index in range(1, 4):
+        df_D_ave = process_data(model_index, "dot", dot_stats)
+        add_data_to_summary(df_D_ave, model_index, "D", dot_stats)
+
+    # Averaging over models
+    for stat in ["SCD_B", "INS-16_B", "INS-64_B", "SCD_D", "dot-score_D", "cross-score_D", "x-score_D"]:
+        summary_df[stat] = summary_df[[f"{stat}_m{i}" for i in range(4)]].mean(axis=1)
+
+    return summary_df
 
 
 def read_disruption_smf_data(data_dir):
@@ -392,6 +443,62 @@ def read_shuffling_data(data_dir, stat_names=["SCD"]):
     df_all["SCD"] = df_all[[f"SCD_m{i}" for i in range(4)]].mean(axis=1)
 
     return df_all
+
+
+def read_genomic_disruption_profile_data(genome_fragment, data_dir="/project/fudenber_735/akitaX1_analyses_data/genomic_disruption_profile/",
+                                         mouse_target=0, human_target=1, mouse_head=1, human_head=0,
+                                         columns_to_keep=["chr", "start", "end", "perm_start", "perm_end"]):
+    """
+    Reads genomic disruption profile data for a given genome fragment, combining mouse and human data
+    into a single dataframe.
+
+    Parameters:
+    -----------
+    genome_fragment : str
+        The name of the genome fragment to read data for.
+    data_dir : str, optional
+        The directory where the genomic disruption profile data is stored. Default is
+        "/project/fudenber_735/akitaX1_analyses_data/genomic_disruption_profile/".
+    mouse_target : int, optional
+        The target index for the mouse data. Default is 0.
+    human_target : int, optional
+        The target index for the human data. Default is 1.
+    mouse_head : int, optional
+        The head index for the mouse data. Default is 1.
+    human_head : int, optional
+        The head index for the human data. Default is 0.
+    columns_to_keep : list of str, optional
+        The list of column names to keep in the resulting dataframe. Default is
+        ["chr", "start", "end", "perm_start", "perm_end"].
+
+    Returns:
+    --------
+    pd.DataFrame
+        A dataframe containing the combined genomic disruption profile data for the specified genome
+        fragment, with additional columns for mouse and human data and a "genomic_window_id" column
+        representing unique genomic windows.
+    """
+    def load_and_merge_data(filenames, prefix, head, target):
+        dfs = [h5_to_df(f, stats=["SCD"], average=False, verbose=False) for f in filenames]
+        merged_df = dfs[0][columns_to_keep + [f"SCD_h{head}_m0_t{target}"]].copy()
+        for i in range(1, 4):
+            merged_df[f"SCD_h{head}_m{i}_t{target}"] = dfs[i][f"SCD_h{head}_m{i}_t{target}"]
+        return merged_df
+
+    mouse_files = [f"{data_dir}/{genome_fragment}/{genome_fragment}_mouse_m{i}.h5" for i in range(4)]
+    human_files = [f"{data_dir}/{genome_fragment}/{genome_fragment}_human_m{i}.h5" for i in range(4)]
+    
+    df = load_and_merge_data(mouse_files, "mouse", mouse_head, mouse_target)
+    df["genomic_window_id"] = pd.factorize(df['start'])[0]
+
+    human_df = load_and_merge_data(human_files, "human", human_head, human_target)
+    for i in range(4):
+        df[f"SCD_h{human_head}_m{i}_t{human_target}"] = human_df[f"SCD_h{human_head}_m{i}_t{human_target}"]
+
+    df[f"mouse_avg_t{mouse_target}"] = df[[f"SCD_h{mouse_head}_m{i}_t{mouse_target}" for i in range(4)]].mean(axis=1)
+    df[f"human_avg_t{human_target}"] = df[[f"SCD_h{human_head}_m{i}_t{human_target}" for i in range(4)]].mean(axis=1)
+
+    return df
 
 
 # flank analysis
@@ -618,6 +725,8 @@ def read_multi_model_single_mutagenesis_data(data_dir, keys_to_ignore=["disrupti
     return df
 
 
+# insulation offset
+
 def read_and_average_insulation_offset_data(data_dir, keys_to_ignore=["insertion_SCD", "disruption_SCD"]):
     """
     Reads insulation and offset data from a series of HDF5 files within a specified directory,
@@ -650,191 +759,4 @@ def read_and_average_insulation_offset_data(data_dir, keys_to_ignore=["insertion
         df[stat] = df[[f"{stat}_m{model}" for model in models]].mean(axis=1)
 
     return df
-
-
-#################################
-
-
-
-def summarize_dot_anchors_data(data_dir, head_index=1, columns_to_keep=["chrom", "end", "start", "strand"], ignore_keys=[]):
-
-    # BOUNDARY DATA
-    print("- processing boundary data from model 0")
-    df_B_bg04 = h5_to_df(data_dir+f"/model_0_boundary_bg04.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
-    df_B_bg59 = h5_to_df(data_dir+f"/model_0_boundary_bg59.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
-    df_B = pd.concat([df_B_bg04, df_B_bg59]).reset_index(drop=True)
-
-    # averaging over targets
-    df_B_ave = average_stat_over_targets(df_B, model_index=0, head_index=1, stat="SCD")
-    df_B_ave["INS-16_m0"] = average_stat_over_targets(df_B, model_index=0, head_index=head_index, stat="INS-16")["INS-16_m0"]
-    df_B_ave["INS-64_m0"] = average_stat_over_targets(df_B, model_index=0, head_index=head_index, stat="INS-64")["INS-64_m0"]
-
-    # averaging over backgrounds
-    summary_df = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="SCD",columns_to_keep=columns_to_keep)[["chrom", "end", "start", "strand", "SCD_m0"]]
-    summary_df = summary_df.rename(columns={"SCD_m0": "SCD_B_m0"})
-    summary_df["INS-16_B_m0"] = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="INS-16",columns_to_keep=columns_to_keep)["INS-16_m0"]
-    summary_df["INS-64_B_m0"] = average_stat_over_backgrounds(df_B_ave, model_index=0, head_index=head_index, stat="INS-64",columns_to_keep=columns_to_keep)["INS-64_m0"]
-
-    # adding data from the models 1,2,3
-    for model_index in range(1,4):
-        print("- processing boundary data from model", model_index)
-        data_bg04 = h5_to_df(data_dir+f"/model_{model_index}_boundary_bg04.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
-        data_bg59 = h5_to_df(data_dir+f"/model_{model_index}_boundary_bg59.h5", ["SCD", "INS-16", "INS-64"], ignore_keys=ignore_keys, average=False) 
-        data = pd.concat([data_bg04, data_bg59]).reset_index(drop=True)
-        
-        # averaging over targets
-        df_B_ave[f"SCD_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="SCD")[f"SCD_m{model_index}"]
-        df_B_ave[f"INS-16_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="INS-16")[f"INS-16_m{model_index}"]
-        df_B_ave[f"INS-64_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="INS-64")[f"INS-64_m{model_index}"]
-    
-        # averaging over backgrounds
-        summary_df[f"SCD_B_m{model_index}"] = average_stat_over_backgrounds(df_B_ave, model_index=model_index, head_index=head_index, stat="SCD",columns_to_keep=columns_to_keep)[f"SCD_m{model_index}"]
-        summary_df[f"INS-16_B_m{model_index}"] = average_stat_over_backgrounds(df_B_ave, model_index=model_index, head_index=head_index, stat="INS-16",columns_to_keep=columns_to_keep)[f"INS-16_m{model_index}"]
-        summary_df[f"INS-64_B_m{model_index}"] = average_stat_over_backgrounds(df_B_ave, model_index=model_index, head_index=head_index, stat="INS-64",columns_to_keep=columns_to_keep)[f"INS-64_m{model_index}"]
-
-
-    # DOT DATA
-    print("- processing dot data from model 0")
-    df_D_bg04 = h5_to_df(data_dir+f"/model_0_dot_bg04.h5", ["SCD", "dot-score", "cross-score", "x-score"], 
-                   ignore_keys=ignore_keys, 
-                       average=False)
-    df_D_bg59 = h5_to_df(data_dir+f"/model_0_dot_bg59.h5", ["SCD", "dot-score", "cross-score", "x-score"], 
-                   ignore_keys=ignore_keys, 
-                       average=False)
-    df_D = pd.concat([df_D_bg04, df_D_bg59]).reset_index(drop=True)
-
-    # averaging over targets
-    df_D_ave = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="SCD")
-    df_D_ave["dot-score_m0"] = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="dot-score")["dot-score_m0"]
-    df_D_ave["cross-score_m0"] = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="cross-score")["cross-score_m0"]
-    df_D_ave["x-score_m0"] = average_stat_over_targets(df_D, model_index=0, head_index=head_index, stat="x-score")["x-score_m0"]
-
-    # averaging over backgrounds
-    summary_df["SCD_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="SCD", columns_to_keep=columns_to_keep)[["SCD_m0"]]
-    summary_df["dot-score_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="dot-score", columns_to_keep=columns_to_keep)["dot-score_m0"]
-    summary_df["cross-score_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="cross-score", columns_to_keep=columns_to_keep)["cross-score_m0"]
-    summary_df["x-score_D_m0"] = average_stat_over_backgrounds(df_D_ave, model_index=0, head_index=head_index, stat="x-score", columns_to_keep=columns_to_keep)["x-score_m0"]
-
-    # adding data from the models 1,2,3
-    for model_index in range(1,4):
-        print("- processing dot data from model", model_index)
-        data_bg04 = h5_to_df(data_dir+f"/model_{model_index}_dot_bg04.h5", ["SCD", "dot-score", "cross-score", "x-score"], average=False) 
-        data_bg59 = h5_to_df(data_dir+f"/model_{model_index}_dot_bg59.h5", ["SCD", "dot-score", "cross-score", "x-score"], average=False) 
-        data = pd.concat([data_bg04, data_bg59]).reset_index(drop=True)
-        
-        # averaging over targets
-        df_D_ave[f"SCD_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="SCD")[f"SCD_m{model_index}"]
-        df_D_ave[f"dot-score_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="dot-score")[f"dot-score_m{model_index}"]
-        df_D_ave[f"cross-score_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="cross-score")[f"cross-score_m{model_index}"]
-        df_D_ave[f"x-score_m{model_index}"] = average_stat_over_targets(data, model_index=model_index, head_index=head_index, stat="x-score")[f"x-score_m{model_index}"]
-    
-        # averaging over backgrounds
-        summary_df[[f"SCD_D_m{model_index}", "DETECTION_SCALE", "FDR"]] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="SCD",columns_to_keep=columns_to_keep+["DETECTION_SCALE", "FDR"])[[f"SCD_m{model_index}", "DETECTION_SCALE", "FDR"]]
-        summary_df[f"dot-score_D_m{model_index}"] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="dot-score",columns_to_keep=columns_to_keep)[f"dot-score_m{model_index}"]
-        summary_df[f"cross-score_D_m{model_index}"] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="cross-score",columns_to_keep=columns_to_keep)[f"cross-score_m{model_index}"]
-        summary_df[f"x-score_D_m{model_index}"] = average_stat_over_backgrounds(df_D_ave, model_index=model_index, head_index=head_index, stat="x-score",columns_to_keep=columns_to_keep)[f"x-score_m{model_index}"]
-
-
-    # averaging over models
-    summary_df["SCD_B"] = summary_df[[f"SCD_B_m{i}" for i in range(4)]].mean(axis=1)
-    summary_df["INS-16_B"] = summary_df[[f"INS-16_B_m{i}" for i in range(4)]].mean(axis=1)
-    summary_df["INS-64_B"] = summary_df[[f"INS-64_B_m{i}" for i in range(4)]].mean(axis=1)
-
-    summary_df["SCD_D"] = summary_df[[f"SCD_D_m{i}" for i in range(4)]].mean(axis=1)
-    summary_df["dot-score_D"] = summary_df[[f"dot-score_D_m{i}" for i in range(4)]].mean(axis=1)
-    summary_df["cross-score_D"] = summary_df[[f"cross-score_D_m{i}" for i in range(4)]].mean(axis=1)
-    summary_df["x-score_D"] = summary_df[[f"x-score_D_m{i}" for i in range(4)]].mean(axis=1)
-
-    return summary_df
-
-
-def read_genomic_disruption_profile_data(genome_fragment, data_dir="/project/fudenber_735/akitaX1_analyses_data/genomic_disruption_profile/",
-                                        mouse_target=0,
-                                         human_target=1,
-                                        mouse_head=1,
-                                        human_head=0,
-                                        columns_to_keep = ["chr", "start", "end", "perm_start", "perm_end"]):
-    """
-    Reads genomic disruption profile data for a given genome fragment, combining mouse and human data
-    into a single dataframe.
-
-    Parameters:
-    -----------
-    genome_fragment : str
-        The name of the genome fragment to read data for.
-    data_dir : str, optional
-        The directory where the genomic disruption profile data is stored. Default is
-        "/project/fudenber_735/akitaX1_analyses_data/genomic_disruption_profile/".
-    mouse_target : int, optional
-        The target index for the mouse data. Default is 0.
-    human_target : int, optional
-        The target index for the human data. Default is 1.
-    mouse_head : int, optional
-        The head index for the mouse data. Default is 1.
-    human_head : int, optional
-        The head index for the human data. Default is 0.
-    columns_to_keep : list of str, optional
-        The list of column names to keep in the resulting dataframe. Default is
-        ["chr", "start", "end", "perm_start", "perm_end"].
-
-    Returns:
-    --------
-    pd.DataFrame
-        A dataframe containing the combined genomic disruption profile data for the specified genome
-        fragment, with additional columns for mouse and human data and a "genomic_window_id" column
-        representing unique genomic windows.
-    """
-    # preparing paths
-    human_m0_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_human_m0.h5"
-    human_m1_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_human_m1.h5"
-    human_m2_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_human_m2.h5"
-    human_m3_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_human_m3.h5"
-    
-    mouse_m0_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_mouse_m0.h5"
-    mouse_m1_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_mouse_m1.h5"
-    mouse_m2_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_mouse_m2.h5"
-    mouse_m3_filename = f"{data_dir}/{genome_fragment}/{genome_fragment}_mouse_m3.h5"
-
-    # preparing collective df
-    mouse_m0_df = h5_to_df(mouse_m0_filename, stats=["SCD"], average=False, verbose=False)
-    columns = columns_to_keep + [f"SCD_h{mouse_head}_m0_t{mouse_target}"]
-    df = mouse_m0_df[columns]
-    df = df.copy()
-    df["genomic_window_id"] = pd.factorize(df['start'])[0]
-
-    # reading the rest of mouse data
-    mouse_m1_df = h5_to_df(mouse_m1_filename, stats=["SCD"], average=False, verbose=False)
-    mouse_m2_df = h5_to_df(mouse_m2_filename, stats=["SCD"], average=False, verbose=False)
-    mouse_m3_df = h5_to_df(mouse_m3_filename, stats=["SCD"], average=False, verbose=False)
-    
-    df[f"SCD_h{mouse_head}_m1_t{mouse_target}"] = mouse_m1_df[f"SCD_h{mouse_head}_m1_t{mouse_target}"]
-    df[f"SCD_h{mouse_head}_m2_t{mouse_target}"] = mouse_m2_df[f"SCD_h{mouse_head}_m2_t{mouse_target}"]
-    df[f"SCD_h{mouse_head}_m3_t{mouse_target}"] = mouse_m3_df[f"SCD_h{mouse_head}_m3_t{mouse_target}"]
-
-    # reading human data and apending
-    human_m0_df = h5_to_df(human_m0_filename, stats=["SCD"], average=False, verbose=False)
-    human_m1_df = h5_to_df(human_m1_filename, stats=["SCD"], average=False, verbose=False)
-    human_m2_df = h5_to_df(human_m2_filename, stats=["SCD"], average=False, verbose=False)
-    human_m3_df = h5_to_df(human_m3_filename, stats=["SCD"], average=False, verbose=False)
-    
-    df[f"SCD_h{human_head}_m0_t{human_target}"] = human_m0_df[f"SCD_h{human_head}_m0_t{human_target}"]
-    df[f"SCD_h{human_head}_m1_t{human_target}"] = human_m1_df[f"SCD_h{human_head}_m1_t{human_target}"]
-    df[f"SCD_h{human_head}_m2_t{human_target}"] = human_m2_df[f"SCD_h{human_head}_m2_t{human_target}"]
-    df[f"SCD_h{human_head}_m3_t{human_target}"] = human_m3_df[f"SCD_h{human_head}_m3_t{human_target}"]
-
-    # computing averages for mouse and human columns
-    df[f"mouse_avg_t{mouse_target}"] = df[[f"SCD_h{mouse_head}_m{i}_t{mouse_target}" for i in range(4)]].mean(axis=1)
-    df[f"human_avg_t{human_target}"] = df[[f"SCD_h{human_head}_m{i}_t{human_target}" for i in range(4)]].mean(axis=1)
-    
-    return df
-
-#########################
-
-
-
-
-
-
-
-
 
