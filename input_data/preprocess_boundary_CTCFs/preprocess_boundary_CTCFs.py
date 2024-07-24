@@ -1,31 +1,45 @@
-#!/usr/bin/env python
-
 """
-This script generates a tsv with CTCFs overlapping boundaries that can be used as input to experiments 
-(to do this, move to the experiments/ directory).
+This script processes genomic data to identify CTCF binding sites that overlap
+with genomic boundaries and are filtered based on various criteria. The script
+uses the Akita deep learning model to predict genome folding from DNA sequence.
+It filters CTCF motifs, repetitive elements, and genomic boundaries, then 
+identifies overlaps between CTCF binding sites and boundaries. The final output
+is a TSV file with the filtered and overlapping CTCF binding sites.
 
-This requires the following inputs:
-- CTCF motif positions as a jaspar tsv,
-- insulation profile with called boundaries as a tsv, currently at 10kb resolution,
-- chromosome lengths as a chrom.sizes file,
-- model sequence length as json.
+Usage:
+    python script.py [options] <params_file> <vcf_file>
 
-First, boundaries are filtered:
-- boundaries on non-autosomal chromosomes are dropped,
-- boundaries closer than model seq_length // 2 to the start or end of chromosomes are dropped.
+Options:
+    --model-params-file         Path to the model parameters JSON file.
+                                [Default: /project/fudenber_735/tensorflow_models/akita/v2/models/f0c0/train/params.json]
+    --jaspar-file               Path to the JASPAR file with CTCF sites coordinates.
+                                [Default: /project/fudenber_735/motifs/mm10/jaspar/MA0139.1.tsv.gz]
+    --ctcf-filter-expand-window Window size for CTCF filtering. [Default: 60]
+    --rmsk-file                 Path to the RMSK file. [Default: /project/fudenber_735/genomes/mm10/database/rmsk.txt.gz]
+    --rmsk-filter-expand-window Window size for RMSK filtering. [Default: 20]
+    --chrom-sizes-file          Path to the chromosome sizes file. [Default: /project/fudenber_735/genomes/mm10/mm10.chrom.sizes.reduced]
+    --boundary-file             Path to the boundary file. [Default: /project/fudenber_735/GEO/bonev_2017_GSE96107/distiller-0.3.1_mm10/results/coolers/features/bonev2017.HiC_ES.mm10.mapq_30.1000.window_200000.insulation]
+    --boundary-strength-thresh  Threshold for boundary strength. [Default: 0.25]
+    --boundary-insulation-thresh Threshold for boundary insulation score. [Default: 0.00]
+    --output-tsv-path           Output path for the filtered CTCF sites TSV file. [Default: ./output/CTCFs_jaspar_filtered_mm10.tsv]
+    --autosomes-only            Drop the sex chromosomes and mitochondrial DNA. [Default: True]
 
-Second, CTCF motifs are intersected with boundaries.
-
-Further filtering of CTCFs:
-- based on sites overlapping,
-- based on overlapping with the rmsk table.
-
+The script performs the following steps:
+1. Parses command-line options and arguments.
+2. Loads the model parameters to obtain the sequence length.
+3. Loads JASPAR CTCF motifs and filters them based on chromosome ID if specified.
+4. Reads the RMSK file for repetitive elements.
+5. Loads and filters boundaries based on strength and insulation thresholds.
+6. Identifies overlaps between filtered boundaries and CTCF motifs.
+7. Filters overlapping CTCF sites by the number of overlaps with other CTCF sites and RMSK elements.
+8. Adds a sequence ID to the filtered CTCF sites.
+9. Saves the final filtered CTCF sites to a TSV file.
 """
+
 
 from optparse import OptionParser
 import json
 import bioframe as bf
-import numpy as np
 import pandas as pd
 import os
 from akita_utils.tsv_gen_utils import (
@@ -33,7 +47,7 @@ from akita_utils.tsv_gen_utils import (
     filter_by_overlap_num,
     filter_by_chromID,
 )
-from akita_utils.format_io import read_jaspar_to_numpy, read_rmsk
+from akita_utils.format_io import read_rmsk
 
 
 def main():
@@ -155,7 +169,9 @@ def main():
     ]
 
     if options.autosomes_only:
-        boundaries = filter_by_chromID(boundaries, chrID_to_drop=chromID_to_drop)
+        boundaries = filter_by_chromID(
+            boundaries, chrID_to_drop=chromID_to_drop
+        )
 
     boundaries = filter_by_chrmlen(
         boundaries,
