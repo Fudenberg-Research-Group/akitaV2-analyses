@@ -36,22 +36,22 @@ import json
 import os
 import pickle
 import random
-import re
 import pandas as pd
 import pysam
-import numpy as np
-
-import tensorflow as tf
 from basenji import seqnn, stream
 
 from akita_utils.seq_gens import sliding_disruption_seq_gen
-from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
+from akita_utils.h5_utils import (
+    initialize_stat_output_h5,
+    write_stat_metrics_to_h5,
+)
 from akita_utils.tsv_utils import split_df_equally
 
 
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
@@ -247,12 +247,13 @@ def main():
         seq_coords_df = pd.read_csv(good_windows_file, sep="\t")
 
     ##############################################################
-    #FOR NOW
+    # FOR NOW
 
-    def expand_seq_coords_df(seq_coords_df, split=10, bin_size=2048, seq_length=1310720):
-
+    def expand_seq_coords_df(
+        seq_coords_df, split=10, bin_size=2048, seq_length=1310720
+    ):
         rel_start_permutation_bin = (seq_length // 2) - bin_size
-        
+
         # Initialize lists to store the resulting rows
         chr_list = []
         start_list = []
@@ -260,37 +261,48 @@ def main():
         genome_window_start_list = []
         perm_start_list = []
         perm_end_list = []
-    
+
         # Iterate through each row in seq_coords_df
         for row in seq_coords_df.itertuples(index=False):
             for perm_index in range(split):
-                permutation_start = rel_start_permutation_bin + (bin_size // split) * perm_index
-                permutation_end = rel_start_permutation_bin + (bin_size // split) * (perm_index + 1)
-                
+                permutation_start = (
+                    rel_start_permutation_bin
+                    + (bin_size // split) * perm_index
+                )
+                permutation_end = rel_start_permutation_bin + (
+                    bin_size // split
+                ) * (perm_index + 1)
+
                 # Append the values to the respective lists
                 chr_list.append(row.chr)
                 start_list.append(row.start)
                 end_list.append(row.end)
                 genome_window_start_list.append(row.genome_window_start)
-                perm_start_list.append(row.genome_window_start + permutation_start)
+                perm_start_list.append(
+                    row.genome_window_start + permutation_start
+                )
                 perm_end_list.append(row.genome_window_start + permutation_end)
-        
+
         # Create the resulting DataFrame
-        expanded_df = pd.DataFrame({
-            'chr': chr_list,
-            'start': start_list,
-            'end': end_list,
-            'genome_window_start': genome_window_start_list,
-            'perm_start': perm_start_list,
-            'perm_end': perm_end_list
-        })
-    
+        expanded_df = pd.DataFrame(
+            {
+                "chr": chr_list,
+                "start": start_list,
+                "end": end_list,
+                "genome_window_start": genome_window_start_list,
+                "perm_start": perm_start_list,
+                "perm_end": perm_end_list,
+            }
+        )
+
         return expanded_df
 
     seq_coords_df = seq_coords_df
-    expanded_seq_coords_df = expand_seq_coords_df(seq_coords_df)
+    expanded_seq_coords_df = expand_seq_coords_df(
+        seq_coords_df, bin_size=bin_size, seq_length=seq_length
+    )
     ##############################################################
-    
+
     num_experiments = len(expanded_seq_coords_df)
 
     print("===================================")
@@ -307,7 +319,9 @@ def main():
     # setup output
 
     # initialize output
-    stats_out = initialize_stat_output_h5(options.out_dir, model_file, stats, expanded_seq_coords_df)
+    stats_out = initialize_stat_output_h5(
+        options.out_dir, model_file, stats, expanded_seq_coords_df
+    )
 
     print("stat_h5_outfile initialized")
 
@@ -317,28 +331,28 @@ def main():
         batch_size,
     )
 
-    num_preds = len(seq_coords_df) * (split+1)
+    num_preds = len(seq_coords_df) * (split + 1)
     exp_index = 0
-    
+
     for pred_index in range(num_preds):
-        if pred_index % (split+1) == 0:
+        if pred_index % (split + 1) == 0:
             # wild types
             ref_preds_matrix = preds_stream[pred_index]
         else:
             permuted_preds_matrix = preds_stream[pred_index]
-            
+
             write_stat_metrics_to_h5(
-                    permuted_preds_matrix,
-                    ref_preds_matrix,
-                    stats_out,
-                    exp_index,
-                    head_index,
-                    model_index,
-                    diagonal_offset=2,
-                    stat_metrics=stats,
-                )
+                permuted_preds_matrix,
+                ref_preds_matrix,
+                stats_out,
+                exp_index,
+                head_index,
+                model_index,
+                diagonal_offset=2,
+                stat_metrics=stats,
+            )
             exp_index += 1
-    
+
     stats_out.close()
 
     genome_open.close()
