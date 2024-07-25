@@ -31,6 +31,7 @@ from akita_utils.analysis_utils import split_by_percentile_groups
 # main
 ################################################################################
 
+
 def main():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage)
@@ -68,13 +69,13 @@ def main():
         default="0,1,2,3,4,5,6,7,8,9",
         type="string",
         help="Specify number of background sequences that CTCFs will be inserted into",
-    )    
+    )
     parser.add_option(
         "--output-filename",
         dest="output_filename",
         default="out.tsv",
         help="Filename for output",
-    )    
+    )
     parser.add_option(
         "--all-permutations",
         dest="all_permutations",
@@ -82,11 +83,15 @@ def main():
         action="store_true",
         help="Test all possible permutations of N = length of provided orientation_string",
     )
-    
+
     (options, args) = parser.parse_args()
-    
-    flank_start, flank_end = [int(flank) for flank in options.flank_range.split(",")]
-    background_indices_list = [int(index) for index in options.backgrounds_indices.split(",")]
+
+    flank_start, flank_end = [
+        int(flank) for flank in options.flank_range.split(",")
+    ]
+    background_indices_list = [
+        int(index) for index in options.backgrounds_indices.split(",")
+    ]
     orient_list = options.orientation_string.split(",")
 
     # reading the tsv with CTCF sites coordinates
@@ -95,20 +100,27 @@ def main():
         input_df = input_df.drop(columns=["Unnamed: 0"])
 
     # spliting sites by percentiles wrt insertion_SCD
-    input_df = split_by_percentile_groups(input_df, column_to_split="insertion_SCD", num_classes=5, 
-                                   upper_percentile=100, lower_percentile=0, 
-                                   category_colname="insSCD_group")
+    input_df = split_by_percentile_groups(
+        input_df,
+        column_to_split="insertion_SCD",
+        num_classes=5,
+        upper_percentile=100,
+        lower_percentile=0,
+        category_colname="insSCD_group",
+    )
     # sampling 100 sites from high, medium, and low group
     high = input_df[input_df["insSCD_group"] == "Group_4"].sample(n=100)
     medium = input_df[input_df["insSCD_group"] == "Group_2"].sample(n=100)
     low = input_df[input_df["insSCD_group"] == "Group_0"].sample(n=100)
-    
+
     # creating final tsv table
     concat_df = pd.concat([high, medium, low])
     concat_df = concat_df.reset_index(drop=True)
-    
-    combined_df = concat_df.merge(right=concat_df, how="cross", suffixes=("_core", "_flank"))
-    
+
+    combined_df = concat_df.merge(
+        right=concat_df, how="cross", suffixes=("_core", "_flank")
+    )
+
     # adding orientation
     combined_df_with_orientation = add_orientation(
         combined_df,
@@ -118,23 +130,28 @@ def main():
 
     # adding flank and spacer
     combined_df_with_flanks_spacers = add_diff_flanks_and_const_spacer(
-        combined_df_with_orientation, 
-        flank_start, 
-        flank_end, 
-        options.flank_spacer_sum
-        )
+        combined_df_with_orientation,
+        flank_start,
+        flank_end,
+        options.flank_spacer_sum,
+    )
 
     # adding background index
     for background_index in background_indices_list:
-        
         combined_df_with_background = add_background(
-            combined_df_with_flanks_spacers, 
-            [background_index]
-            )
-        
+            combined_df_with_flanks_spacers, [background_index]
+        )
+
         combined_df_with_background.to_csv(
-                options.output_filename.split(".")[0] + "bg_" + str(background_index) + "." + options.output_filename.split(".")[1], sep="\t", index=False)
-        
+            options.output_filename.split(".")[0]
+            + "bg_"
+            + str(background_index)
+            + "."
+            + options.output_filename.split(".")[1],
+            sep="\t",
+            index=False,
+        )
+
 
 ################################################################################
 # __main__
@@ -142,4 +159,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
