@@ -35,21 +35,22 @@ import json
 import os
 import pickle
 import random
-import re
 import pandas as pd
 import pysam
-import numpy as np
-import tensorflow as tf
 from basenji import seqnn, stream
 
 from akita_utils.seq_gens import central_permutation_seqs_gen
-from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
+from akita_utils.h5_utils import (
+    initialize_stat_output_h5,
+    write_stat_metrics_to_h5,
+)
 from akita_utils.tsv_utils import split_df_equally
 
 
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
@@ -190,8 +191,10 @@ def main():
     options.shifts = [int(shift) for shift in options.shifts.split(",")]
     stats = options.stats.split(",")
     shift = int(options.shift)
-    
-    chrom_sizes_table = pd.read_csv(options.chrom_sizes, sep="\t", names=["chrom", "size"])
+
+    chrom_sizes_table = pd.read_csv(
+        options.chrom_sizes, sep="\t", names=["chrom", "size"]
+    )
 
     head_index = int(model_file.split("model")[-1][0])
     model_index = int(model_file.split("c0")[0][-1])
@@ -222,7 +225,6 @@ def main():
     seqnn_model = seqnn.SeqNN(params_model)
     seqnn_model.restore(model_file, head_i=head_index)
     seqnn_model.build_ensemble(options.rc, options.shifts)
-    seq_length = int(params_model["seq_length"])
 
     # dummy target info
     if options.targets_file is None:
@@ -261,39 +263,45 @@ def main():
     # setup output
 
     # initialize output
-    stats_out = initialize_stat_output_h5(options.out_dir, model_file, stats, seq_coords_df)
+    stats_out = initialize_stat_output_h5(
+        options.out_dir, model_file, stats, seq_coords_df
+    )
 
     print("stat_h5_outfile initialized")
 
     # if options.save_maps:
-        # initlize map h5 files
+    # initlize map h5 files
 
     preds_stream = stream.PredStreamGen(
         seqnn_model,
-        central_permutation_seqs_gen(seq_coords_df, genome_open, chrom_sizes_table, permutation_window_shift=shift),
+        central_permutation_seqs_gen(
+            seq_coords_df,
+            genome_open,
+            chrom_sizes_table,
+            permutation_window_shift=shift,
+        ),
         batch_size,
     )
 
-    for ref_index in range(0, num_experiments*2, 2):
-    
+    for ref_index in range(0, num_experiments * 2, 2):
         ref_preds_matrix = preds_stream[ref_index]
         permut_index = ref_index + 1
         permuted_preds_matrix = preds_stream[permut_index]
-        exp_index = ref_index//2
-        
+        exp_index = ref_index // 2
+
         write_stat_metrics_to_h5(
-                permuted_preds_matrix,
-                ref_preds_matrix,
-                stats_out,
-                exp_index,
-                head_index,
-                model_index,
-                diagonal_offset=2,
-                stat_metrics=stats,
-            )
+            permuted_preds_matrix,
+            ref_preds_matrix,
+            stats_out,
+            exp_index,
+            head_index,
+            model_index,
+            diagonal_offset=2,
+            stat_metrics=stats,
+        )
 
         # if options.save_maps:
-            # write maps
+        # write maps
 
     stats_out.close()
 
