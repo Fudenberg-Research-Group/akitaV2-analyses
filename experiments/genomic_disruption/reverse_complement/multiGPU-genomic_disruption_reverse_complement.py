@@ -1,6 +1,6 @@
 # Description:
 # This script prepares and launches a set of jobs to generate predictions using a trained deep learning model, utilizing
-# SLURM for job scheduling and management. The script supports both single and multi-GPU execution and can handle 
+# SLURM for job scheduling and management. The script supports both single and multi-GPU execution and can handle
 # restarts of partially completed jobs.
 #
 # Inputs:
@@ -45,6 +45,7 @@ import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
+
 
 ################################################################################
 # main
@@ -232,17 +233,17 @@ def main():
     for pi in range(options.processes):
         if not options.restart or not job_started(options, pi):
             cmd = 'eval "$(conda shell.bash hook)";'
-            cmd += 'conda activate basenji_py3.9_tf2.15;'
+            cmd += "conda activate basenji_py3.9_tf2.15;"
             cmd += (
-                'python ${SLURM_SUBMIT_DIR}/genomic_disruption_reverse_complement.py %s %s %d;'
+                "python ${SLURM_SUBMIT_DIR}/genomic_disruption_reverse_complement.py %s %s %d;"
                 % (
                     options_pkl_file,
                     " ".join(args),
                     pi,
                 )
             )
-            cmd += 'conda deactivate;'
-            
+            cmd += "conda deactivate;"
+
             name = "%s_p%d" % (options.name, pi)
             outf = "%s/job%d.out" % (options.out_dir, pi)
             errf = "%s/job%d.err" % (options.out_dir, pi)
