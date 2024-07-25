@@ -70,6 +70,7 @@ from akita_utils.h5_utils import (
 # main
 ################################################################################
 
+
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
     parser = OptionParser(usage)
@@ -309,16 +310,13 @@ def main():
     print("stat_h5_outfile initialized")
 
     if options.save_maps:
-
         maps_h5_outfile = initialize_maps_output_h5(
             options.out_dir, model_file, seqnn_model, seq_coords_df
         )
         print("maps_h5_outfile initialized")
 
         if options.processes is not None:
-
             if worker_index == 0:
-
                 refmaps_h5_outfile = initialize_maps_output_references(
                     general_out_dir,
                     model_file,
@@ -388,7 +386,6 @@ def main():
         )
 
         if options.save_maps:
-
             # save maps for inserted sequences
             write_maps_to_h5(
                 preds_matrix,

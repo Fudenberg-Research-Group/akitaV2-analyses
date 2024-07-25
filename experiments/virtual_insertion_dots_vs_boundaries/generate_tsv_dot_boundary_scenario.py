@@ -38,6 +38,7 @@ from akita_utils.tsv_utils import (
 # main
 ################################################################################
 
+
 def main():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage)
@@ -88,39 +89,38 @@ def main():
         default="0,1,2,3,4,5,6,7,8,9",
         type="string",
         help="Specify number of background sequences that CTCFs will be inserted into",
-    )  
+    )
     parser.add_option(
         "--boundary-output-filename",
         dest="boundary_output_filename",
         default="boundary_out.tsv",
         help="Filename for boundary output",
-    )  
+    )
     parser.add_option(
         "--dot-output-filename",
         dest="dot_output_filename",
         default="dot_out.tsv",
         help="Filename for dot output",
-    )    
-    
+    )
+
     (options, args) = parser.parse_args()
-    
+
     flank_length = options.flank_lenght
-    background_indices_list = [int(index) for index in options.backgrounds_indices.split(",")]
+    background_indices_list = [
+        int(index) for index in options.backgrounds_indices.split(",")
+    ]
 
     boundary_orient_list = [options.boundary_orientation_string]
     dot_orient_list = [options.dot_orientation_string]
-    
+
     boundary_spacing_list = [options.boundary_spacer]
     dot_spacing_list = [options.dot_spacer]
-    
+
     CTCF_df = pd.read_csv(options.input_tsv_file, sep="\t")
     nr_sites = len(CTCF_df)
-    
+
     # adding background index
-    CTCF_df_with_background = add_background(
-        CTCF_df, 
-        background_indices_list
-        )
+    CTCF_df_with_background = add_background(CTCF_df, background_indices_list)
 
     exp_id = [i for i in range(nr_sites * len(background_indices_list))]
     CTCF_df_with_background["exp_id"] = exp_id
@@ -138,27 +138,25 @@ def main():
         orientation_strings=dot_orient_list,
         all_permutations=False,
     )
-    
+
     # adding flank and spacer for boundary
     boundary_CTCF_df_with_flanks_spacers = add_const_flank_and_diff_spacer(
-        boundary_CTCF_df_with_orientation, 
-        flank_length, 
-        boundary_spacing_list)
+        boundary_CTCF_df_with_orientation, flank_length, boundary_spacing_list
+    )
 
     # adding flank and spacer for dot
     dot_CTCF_df_with_flanks_spacers = add_const_flank_and_diff_spacer(
-        dot_CTCF_df_with_orientation, 
-        flank_length, 
-        dot_spacing_list)
+        dot_CTCF_df_with_orientation, flank_length, dot_spacing_list
+    )
 
     # saving
     boundary_CTCF_df_with_flanks_spacers.to_csv(
-            options.boundary_output_filename, sep="\t", index=False
-        )
-    
+        options.boundary_output_filename, sep="\t", index=False
+    )
+
     dot_CTCF_df_with_flanks_spacers.to_csv(
-            options.dot_output_filename, sep="\t", index=False
-        )
+        options.dot_output_filename, sep="\t", index=False
+    )
 
 
 ################################################################################
@@ -167,4 +165,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
