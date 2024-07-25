@@ -1,6 +1,6 @@
 # This script generates a dataframe specifying genomic sequence loci and associated parameters for sequence manipulation experiments.
 # It reads sequence intervals from a BED file and calculates GC content using a genome FASTA file.
-# Configurable parameters include shuffle sizes, motif detection thresholds, mutation methods, output filename, 
+# Configurable parameters include shuffle sizes, motif detection thresholds, mutation methods, output filename,
 # sample size for background loci, locus selection mode, and map score thresholds.
 # The script produces a TSV file containing all possible combinations of these parameters and corresponding sequence loci.
 
@@ -29,6 +29,7 @@ import pandas as pd
 import bioframe
 import argparse
 from akita_utils.tsv_utils import filter_dataframe_by_column
+
 
 ################################################################################
 # main
@@ -154,6 +155,7 @@ def main():
     parameters_combo_dataframe.to_csv(
         f"{args.output_filename}", sep="\t", index=False
     )
+
 
 ################################################################################
 # __main__

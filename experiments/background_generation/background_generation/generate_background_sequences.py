@@ -1,6 +1,6 @@
 # This script generates background sequences and visualizes contact maps for each sequence using a specified model.
 # It reads genomic windows from a TSV file and processes them using a model to create background sequences.
-# Configurable parameters include plot limits, output directory, batch size, maximum iterations, 
+# Configurable parameters include plot limits, output directory, batch size, maximum iterations,
 # reverse complement averaging, ensemble prediction shifts, and whether to save sequences and plot maps.
 # The script can be run in single or multi-GPU mode, depending on the number of provided arguments.
 
@@ -42,13 +42,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage.measure import block_reduce
 import seaborn as sns
-import tensorflow as tf
-from basenji import seqnn, stream
+from basenji import seqnn
 
 from akita_utils.background_utils import create_flat_seqs_gen
 from akita_utils.dna_utils import dna_1hot_to_seq
 from akita_utils.utils import ut_dense
 from akita_utils.tsv_utils import split_df_equally
+
 
 ################################################################################
 # main
@@ -171,13 +171,10 @@ def main():
 
     if not os.path.isdir(options.out_dir):
         os.mkdir(options.out_dir)
-    else:
-        plot_dir = None
 
     options.shifts = [int(shift) for shift in options.shifts.split(",")]
 
     head_index = int(model_file.split("model")[-1][0])
-    model_index = int(model_file.split("c0")[0][-1])
 
     random.seed(44)
 
@@ -293,7 +290,7 @@ def main():
             plt.tight_layout()
             plt.savefig(f"{options.out_dir}/seq{no}_max-SCD{max_scd}.pdf")
             plt.close()
-            
+
 
 ################################################################################
 # __main__

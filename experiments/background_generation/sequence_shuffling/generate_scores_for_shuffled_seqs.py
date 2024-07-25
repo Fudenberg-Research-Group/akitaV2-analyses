@@ -35,20 +35,21 @@ import json
 import os
 import pickle
 import random
-import re
 import pandas as pd
 import pysam
-import numpy as np
-import tensorflow as tf
 from basenji import seqnn, stream
 
 from akita_utils.seq_gens import shuffled_sequences_gen
-from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
+from akita_utils.h5_utils import (
+    initialize_stat_output_h5,
+    write_stat_metrics_to_h5,
+)
 from akita_utils.tsv_utils import split_df_equally
 
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
@@ -175,7 +176,7 @@ def main():
 
     options.shifts = [int(shift) for shift in options.shifts.split(",")]
     stats = options.stats.split(",")
-    
+
     head_index = int(model_file.split("model")[-1][0])
     model_index = int(model_file.split("c0")[0][-1])
 
@@ -199,13 +200,12 @@ def main():
         targets_df = pd.read_csv(options.targets_file, sep="\t", index_col=0)
         target_ids = targets_df.identifier
         target_labels = targets_df.description
-    
+
     #################################################################
     # load model
     seqnn_model = seqnn.SeqNN(params_model)
     seqnn_model.restore(model_file, head_i=head_index)
     seqnn_model.build_ensemble(options.rc, options.shifts)
-    seq_length = int(params_model["seq_length"])
 
     # dummy target info
     if options.targets_file is None:
@@ -244,12 +244,14 @@ def main():
     # setup output
 
     # initialize output
-    stats_out = initialize_stat_output_h5(options.out_dir, model_file, stats, seq_coords_df)
+    stats_out = initialize_stat_output_h5(
+        options.out_dir, model_file, stats, seq_coords_df
+    )
 
     print("stat_h5_outfile initialized")
 
     # if options.save_maps:
-        # initlize map h5 files
+    # initlize map h5 files
 
     preds_stream = stream.PredStreamGen(
         seqnn_model,
@@ -258,22 +260,21 @@ def main():
     )
 
     for exp_index in range(0, num_experiments):
-        
         preds_matrix = preds_stream[exp_index]
-        
+
         write_stat_metrics_to_h5(
-                preds_matrix,
-                None,
-                stats_out,
-                exp_index,
-                head_index,
-                model_index,
-                diagonal_offset=2,
-                stat_metrics=stats,
-            )
+            preds_matrix,
+            None,
+            stats_out,
+            exp_index,
+            head_index,
+            model_index,
+            diagonal_offset=2,
+            stat_metrics=stats,
+        )
 
         # if options.save_maps:
-            # write maps
+        # write maps
 
     stats_out.close()
 

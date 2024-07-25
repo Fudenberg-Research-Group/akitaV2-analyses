@@ -39,9 +39,12 @@ from akita_utils.tsv_utils import filter_dataframe_by_column
 # main
 ################################################################################
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", dest="genome_fasta", help="fasta file", required=True)
+    parser.add_argument(
+        "-f", dest="genome_fasta", help="fasta file", required=True
+    )
     parser.add_argument(
         "-seq_bed_file",
         dest="seq_bed_file",
@@ -80,7 +83,9 @@ def main():
         default=20,
         help="number of seqs to select from dataframe",
     )
-    parser.add_argument("--mode", default="uniform", help="loci selection criteria")
+    parser.add_argument(
+        "--mode", default="uniform", help="loci selection criteria"
+    )
     args = parser.parse_args()
 
     # prepare dataframe with chromosomes and calculate GC content(using bioframe)
@@ -90,14 +95,16 @@ def main():
         header=None,
         names=["chrom", "start", "end", "fold"],
     )
-    general_seq_gc_df = bioframe.frac_gc(seq_df, bioframe.load_fasta(args.genome_fasta), return_input=True)
+    general_seq_gc_df = bioframe.frac_gc(
+        seq_df, bioframe.load_fasta(args.genome_fasta), return_input=True
+    )
 
     grid_search_params = {
         "shuffle_parameter": args.shuffle_parameter,
         "ctcf_detection_threshold": args.ctcf_detection_threshold,
         "mutation_method": args.mutation_method,
     }
-    
+
     # sampling seq_df dataframe respecting GC content
     seq_gc_df = filter_dataframe_by_column(
         general_seq_gc_df,
@@ -122,14 +129,24 @@ def main():
 
     grid_search_params["locus_specification"] = locus_list
 
-    grid_search_param_set = list(itertools.product(*[v for v in grid_search_params.values()]))
-    parameters_combo_dataframe = pd.DataFrame(grid_search_param_set, columns=grid_search_params.keys())
-    parameters_combo_dataframe[["chrom", "start", "end", "GC_content"]] = parameters_combo_dataframe[
-        "locus_specification"
-    ].str.split(",", expand=True)
-    parameters_combo_dataframe = parameters_combo_dataframe.drop(columns=["locus_specification"])
-    
-    parameters_combo_dataframe.to_csv(f"{args.output_filename}", sep="\t", index=False)
+    grid_search_param_set = list(
+        itertools.product(*[v for v in grid_search_params.values()])
+    )
+    parameters_combo_dataframe = pd.DataFrame(
+        grid_search_param_set, columns=grid_search_params.keys()
+    )
+    parameters_combo_dataframe[
+        ["chrom", "start", "end", "GC_content"]
+    ] = parameters_combo_dataframe["locus_specification"].str.split(
+        ",", expand=True
+    )
+    parameters_combo_dataframe = parameters_combo_dataframe.drop(
+        columns=["locus_specification"]
+    )
+
+    parameters_combo_dataframe.to_csv(
+        f"{args.output_filename}", sep="\t", index=False
+    )
 
 
 ################################################################################
@@ -138,4 +155,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

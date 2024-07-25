@@ -1,6 +1,6 @@
 # This script generates predictions using a trained deep learning model and saves statistical metrics.
 # It reads model parameters, a model file, and a TSV file with sequence information, then processes these
-# sequences to generate predictions and compute specified statistical metrics. The script also supports 
+# sequences to generate predictions and compute specified statistical metrics. The script also supports
 # multi-GPU execution using SLURM and can save prediction maps if requested.
 #
 # Inputs:
@@ -35,20 +35,21 @@ import json
 import os
 import pickle
 import random
-import re
 import pandas as pd
 import pysam
-import numpy as np
-import tensorflow as tf
 from basenji import seqnn, stream
 
 from akita_utils.seq_gens import unshuffled_insertion_gen
-from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
+from akita_utils.h5_utils import (
+    initialize_stat_output_h5,
+    write_stat_metrics_to_h5,
+)
 from akita_utils.tsv_utils import split_df_equally
 
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
@@ -175,7 +176,7 @@ def main():
 
     options.shifts = [int(shift) for shift in options.shifts.split(",")]
     stats = options.stats.split(",")
-    
+
     head_index = int(model_file.split("model")[-1][0])
     model_index = int(model_file.split("c0")[0][-1])
 
@@ -199,13 +200,12 @@ def main():
         targets_df = pd.read_csv(options.targets_file, sep="\t", index_col=0)
         target_ids = targets_df.identifier
         target_labels = targets_df.description
-    
+
     #################################################################
     # load model
     seqnn_model = seqnn.SeqNN(params_model)
     seqnn_model.restore(model_file, head_i=head_index)
     seqnn_model.build_ensemble(options.rc, options.shifts)
-    seq_length = int(params_model["seq_length"])
 
     # dummy target info
     if options.targets_file is None:
@@ -228,7 +228,7 @@ def main():
         # read motif positions from csv
         seq_coords_df = pd.read_csv(shuffled_seqs_tsv, sep="\t")
 
-    num_experiments = len(seq_coords_df)*2
+    num_experiments = len(seq_coords_df) * 2
 
     print("===================================")
     print(
@@ -245,35 +245,40 @@ def main():
     ctcf_site_coordinates = ("chr4", 87368268, 87368249, "+")
 
     # initialize output
-    stats_out = initialize_stat_output_h5(options.out_dir, model_file, stats, seq_coords_df)
+    stats_out = initialize_stat_output_h5(
+        options.out_dir, model_file, stats, seq_coords_df
+    )
 
     print("stat_h5_outfile initialized")
 
     # if options.save_maps:
-        # initlize map h5 files
+    # initlize map h5 files
 
     preds_stream = stream.PredStreamGen(
         seqnn_model,
-        unshuffled_insertion_gen(seq_coords_df, genome_open, ctcf_site_coordinates),
+        unshuffled_insertion_gen(
+            seq_coords_df, genome_open, ctcf_site_coordinates
+        ),
         batch_size,
     )
 
     for exp_index in range(0, num_experiments, 2):
-       
         reference_prediction_matrix = preds_stream[exp_index]
-        prediction_matrix = preds_stream[exp_index+1]
-            
-        write_stat_metrics_to_h5(prediction_matrix,
-                                    reference_prediction_matrix,
-                                    stats_out,
-                                    int(exp_index/2),
-                                    head_index,
-                                    model_index,
-                                     diagonal_offset=2,
-                                    stat_metrics=stats)  
+        prediction_matrix = preds_stream[exp_index + 1]
+
+        write_stat_metrics_to_h5(
+            prediction_matrix,
+            reference_prediction_matrix,
+            stats_out,
+            int(exp_index / 2),
+            head_index,
+            model_index,
+            diagonal_offset=2,
+            stat_metrics=stats,
+        )
 
         # if options.save_maps:
-            # write maps
+        # write maps
 
     stats_out.close()
 

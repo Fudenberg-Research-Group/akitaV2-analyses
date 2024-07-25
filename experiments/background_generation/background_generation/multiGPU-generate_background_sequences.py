@@ -1,7 +1,7 @@
 # This script launches jobs to generate background sequences and visualize contact maps using SLURM.
-# It reads model parameters, a model file, and a TSV file with genomic windows, then submits jobs to 
-# create background sequences using the specified model. Configurable parameters include plot limits, 
-# output directory, batch size, maximum iterations, reverse complement averaging, ensemble prediction shifts, 
+# It reads model parameters, a model file, and a TSV file with genomic windows, then submits jobs to
+# create background sequences using the specified model. Configurable parameters include plot limits,
+# output directory, batch size, maximum iterations, reverse complement averaging, ensemble prediction shifts,
 # SLURM queue, number of CPUs, and whether to restart incomplete jobs.
 
 # Inputs:
@@ -45,6 +45,7 @@ import os
 import pickle
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
+
 
 ################################################################################
 # main
