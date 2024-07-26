@@ -42,7 +42,7 @@ import json
 import bioframe as bf
 import pandas as pd
 import os
-from akita_utils.tsv_gen_utils import (
+from akita_utils.tsv_utils import (
     filter_by_chrmlen,
     filter_by_overlap_num,
     filter_by_chromID,
