@@ -1,7 +1,7 @@
 # Description:
 # This script prepares and launches SLURM jobs to process multiple tasks using a deep learning model. It sets up
 # the necessary environment, prepares options, and distributes the workload across multiple SLURM jobs. It supports
-# both GPU and CPU execution, handles job restart, and manages SLURM job settings such as queue, time, and resource 
+# both GPU and CPU execution, handles job restart, and manages SLURM job settings such as queue, time, and resource
 # constraints.
 #
 # Inputs:
@@ -42,6 +42,7 @@ import pickle
 
 import akita_utils.slurm_utils as slurm
 from akita_utils.h5_utils import job_started
+
 
 ################################################################################
 # main
@@ -230,17 +231,17 @@ def main():
     for pi in range(options.processes):
         if not options.restart or not job_started(options, pi):
             cmd = 'eval "$(conda shell.bash hook)";'
-            cmd += 'conda activate basenji_py3.9_tf2.15;'
+            cmd += "conda activate basenji_py3.9_tf2.15;"
             cmd += (
-                'python ${SLURM_SUBMIT_DIR}/virtual_insertion_logspacing.py %s %s %d;'
+                "python ${SLURM_SUBMIT_DIR}/virtual_insertion_logspacing.py %s %s %d;"
                 % (
                     options_pkl_file,
                     " ".join(args),
                     pi,
                 )
             )
-            cmd += 'conda deactivate;'
-            
+            cmd += "conda deactivate;"
+
             name = "%s_p%d" % (options.name, pi)
             outf = "%s/job%d.out" % (options.out_dir, pi)
             errf = "%s/job%d.err" % (options.out_dir, pi)
@@ -277,4 +278,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

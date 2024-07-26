@@ -20,7 +20,6 @@
 # - --stats: Comma-separated list of statistics to save [Default: "SCD"].
 # - --targets_file: File specifying target indexes and labels [Default: None].
 # - --batch-size: Specify batch size [Default: 4].
-# - --save-maps: Save all maps in the H5 file [Default: False].
 # - --background-file: File with insertion sequences in FASTA format [Default: None].
 # - --processes: Number of processes for multi-processing [Default: None].
 # - --cpu: Run without GPU [Default: False].
@@ -41,12 +40,9 @@ import json
 import os
 import pickle
 import random
-import re
 import pandas as pd
 import pysam
 import numpy as np
-
-import tensorflow as tf
 from basenji import seqnn, stream
 
 from akita_utils.seq_gens import symmertic_insertion_seqs_gen
@@ -135,13 +131,6 @@ def main():
         type="int",
         help="Specify batch size",
     )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
-    )
     ## insertion-specific options
     parser.add_option(
         "--background-file",
@@ -219,7 +208,6 @@ def main():
     seqnn_model = seqnn.SeqNN(params_model)
     seqnn_model.restore(model_file, head_i=head_index)
     seqnn_model.build_ensemble(options.rc, options.shifts)
-    seq_length = int(params_model["seq_length"])
 
     # dummy target info
     if options.targets_file is None:
@@ -292,9 +280,6 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    # if options.save_maps:
-        # initlize map h5 files
-
     preds_stream = stream.PredStreamGen(
         seqnn_model,
         symmertic_insertion_seqs_gen(seq_coords_df, background_seqs, genome_open),
@@ -317,14 +302,7 @@ def main():
                                      diagonal_offset=2,
                                     stat_metrics=stats) 
 
-        # if options.save_maps:
-            # write maps
-
     stats_out.close()
-
-    # if options.save_maps:
-    #     maps_h5_outfile.close()
-
     genome_open.close()
 
 
