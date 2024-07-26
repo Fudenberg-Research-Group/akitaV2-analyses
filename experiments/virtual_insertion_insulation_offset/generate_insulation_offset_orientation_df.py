@@ -1,5 +1,5 @@
 # Description:
-# This script processes a TSV file containing CTCF-binding site coordinates by generating orientations, assigning background indices, 
+# This script processes a TSV file containing CTCF-binding site coordinates by generating orientations, assigning background indices,
 # and adding flank and spacer information. The processed data is then saved to a new TSV file.
 #
 # Inputs:
@@ -19,9 +19,6 @@
 
 from optparse import OptionParser
 import pandas as pd
-import numpy as np
-
-from cooltools.lib import numutils
 
 from akita_utils.tsv_utils import (
     add_orientation,
@@ -33,13 +30,14 @@ from akita_utils.tsv_utils import (
 # helper function
 ################################################################################
 
+
 def generate_orientations(num_sites):
     orientations = []
-    
+
     # Generate symmetric orientations
     symmetric_orientation = ">" * num_sites
     orientations.append(symmetric_orientation)
-    
+
     # Generate asymmetric orientations
     for i in range(1, num_sites):
         asymmetric_orientation = "<" * i + ">" * (num_sites - i)
@@ -47,18 +45,19 @@ def generate_orientations(num_sites):
 
     # Add reverse of symmetric orientation
     orientations.append("<" * num_sites)
-    
+
     # Add reverse of asymmetric orientations
     for i in range(1, num_sites):
         asymmetric_orientation_reverse = ">" * (num_sites - i) + "<" * i
         orientations.append(asymmetric_orientation_reverse)
-    
+
     return orientations
 
 
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options]"
@@ -97,7 +96,7 @@ def main():
         default="0,1,2,3,4,5,6,7,8,9",
         type="string",
         help="Specify number of background sequences that CTCFs will be inserted into",
-    )  
+    )
     parser.add_option(
         "--num-ctcf-sites",
         dest="num_ctcf_sites",
@@ -110,11 +109,13 @@ def main():
         dest="output_filename",
         default="out.tsv",
         help="Filename for output",
-    )    
-    
+    )
+
     (options, args) = parser.parse_args()
-    
-    background_indices_list = [int(index) for index in options.backgrounds_indices.split(",")]
+
+    background_indices_list = [
+        int(index) for index in options.backgrounds_indices.split(",")
+    ]
     orient_list = generate_orientations(int(options.num_inserts))
     flank_start, flank_end = options.flank_length, options.flank_length
 
@@ -122,7 +123,9 @@ def main():
     if "Unnamed: 0" in CTCF_df.columns:
         CTCF_df = CTCF_df.drop(columns=["Unnamed: 0"])
 
-    CTCF_df = CTCF_df.sort_values(by="insertion_SCD", ascending=False)[:options.num_ctcf_sites]
+    CTCF_df = CTCF_df.sort_values(by="insertion_SCD", ascending=False)[
+        : options.num_ctcf_sites
+    ]
     CTCF_df = CTCF_df.reset_index(drop=True)
 
     # adding orientation
@@ -134,21 +137,20 @@ def main():
 
     # adding background index
     CTCF_df_with_background = add_background(
-        CTCF_df_with_orientation, 
-        background_indices_list
-        )
+        CTCF_df_with_orientation, background_indices_list
+    )
 
     # adding flank and spacer
     CTCF_df_with_flanks_spacers = add_diff_flanks_and_const_spacer(
-        CTCF_df_with_background, 
-        flank_start, 
-        flank_end, 
-        options.flank_spacer_sum
-        )
+        CTCF_df_with_background,
+        flank_start,
+        flank_end,
+        options.flank_spacer_sum,
+    )
 
     CTCF_df_with_flanks_spacers.to_csv(
-            options.output_filename, sep="\t", index=False, header=True
-        )
+        options.output_filename, sep="\t", index=False, header=True
+    )
 
 
 ################################################################################

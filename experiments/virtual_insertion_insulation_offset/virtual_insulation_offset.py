@@ -1,5 +1,5 @@
 # Description:
-# This script processes genomic sequences using a deep learning model, generating predictions and statistical metrics. 
+# This script processes genomic sequences using a deep learning model, generating predictions and statistical metrics.
 # It supports both single and multi-GPU configurations, and can handle different input data and options for saving outputs.
 #
 # Inputs:
@@ -38,16 +38,16 @@ import json
 import os
 import pickle
 import random
-import re
 import pandas as pd
 import pysam
 import numpy as np
-
-import tensorflow as tf
 from basenji import seqnn, stream
 
 from akita_utils.seq_gens import symmertic_insertion_seqs_gen
-from akita_utils.h5_utils import (initialize_stat_output_h5, write_stat_metrics_to_h5)
+from akita_utils.h5_utils import (
+    initialize_stat_output_h5,
+    write_stat_metrics_to_h5,
+)
 from akita_utils.tsv_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
@@ -55,6 +55,7 @@ from akita_utils.dna_utils import dna_1hot
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <motifs_file>"
@@ -148,7 +149,7 @@ def main():
         default=None,
         help="file with insertion seqs in fasta format",
     )
-    
+
     (options, args) = parser.parse_args()
 
     if len(args) == 3:
@@ -218,7 +219,6 @@ def main():
     seqnn_model = seqnn.SeqNN(params_model)
     seqnn_model.restore(model_file, head_i=head_index)
     seqnn_model.build_ensemble(options.rc, options.shifts)
-    seq_length = int(params_model["seq_length"])
 
     # dummy target info
     if options.targets_file is None:
@@ -255,23 +255,23 @@ def main():
 
     #################################################################
     # collecting background sequences
-    
+
     # default background file
     if options.background_file is None:
         background_file = f"/project/fudenber_735/akitaX1_analyses_data/background_generation/background_generation/background_sequences_model_{model_index}.fa"
     else:
         background_file = options.background_file
-        
+
     background_seqs = []
-    
+
     with open(background_file, "r") as f:
         for line in f.readlines():
             if ">" in line:
                 continue
             background_seqs.append(dna_1hot(line.strip()))
-    
+
     num_insert_backgrounds = seq_coords_df["background_index"].max()
-    
+
     if len(background_seqs) < num_insert_backgrounds:
         raise ValueError(
             "must provide a background file with at least as many"
@@ -281,43 +281,50 @@ def main():
 
     #################################################################
     # predictions for references
-    backgrounds_predictions = seqnn_model.predict(np.array(background_seqs), batch_size=batch_size)
-    
+    backgrounds_predictions = seqnn_model.predict(
+        np.array(background_seqs), batch_size=batch_size
+    )
+
     #################################################################
     # setup output
 
     # initialize output
-    stats_out = initialize_stat_output_h5(options.out_dir, model_file, stats, seq_coords_df)
+    stats_out = initialize_stat_output_h5(
+        options.out_dir, model_file, stats, seq_coords_df
+    )
 
     print("stat_h5_outfile initialized")
 
     # if options.save_maps:
-        # initlize map h5 files
+    # initlize map h5 files
 
     preds_stream = stream.PredStreamGen(
         seqnn_model,
-        symmertic_insertion_seqs_gen(seq_coords_df, background_seqs, genome_open),
+        symmertic_insertion_seqs_gen(
+            seq_coords_df, background_seqs, genome_open
+        ),
         batch_size,
     )
 
     for exp_index in range(num_experiments):
-        
         bg_index = seq_coords_df.iloc[exp_index].background_index
-    
+
         prediction_matrix = preds_stream[exp_index]
-        reference_prediction_matrix = backgrounds_predictions[bg_index, :, :]  
-        
-        write_stat_metrics_to_h5(prediction_matrix,
-                                    reference_prediction_matrix,
-                                    stats_out,
-                                    exp_index,
-                                    head_index,
-                                    model_index,
-                                     diagonal_offset=2,
-                                    stat_metrics=stats) 
+        reference_prediction_matrix = backgrounds_predictions[bg_index, :, :]
+
+        write_stat_metrics_to_h5(
+            prediction_matrix,
+            reference_prediction_matrix,
+            stats_out,
+            exp_index,
+            head_index,
+            model_index,
+            diagonal_offset=2,
+            stat_metrics=stats,
+        )
 
         # if options.save_maps:
-            # write maps
+        # write maps
 
     stats_out.close()
 
@@ -333,4 +340,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
