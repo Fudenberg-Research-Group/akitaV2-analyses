@@ -30,6 +30,7 @@ from akita_utils.tsv_utils import (
 # main
 ################################################################################
 
+
 def main():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage)
@@ -74,19 +75,24 @@ def main():
         default="0,1,2,3,4,5,6,7,8,9",
         type="string",
         help="Specify number of background sequences that CTCFs will be inserted into",
-    )    
+    )
     parser.add_option(
         "--output-filename",
         dest="output_filename",
         default="out.tsv",
         help="Filename for output",
-    )    
+    )
 
     (options, args) = parser.parse_args()
-    
-    background_indices_list = [int(index) for index in options.backgrounds_indices.split(",")]
-    orient_list = [x*options.orientation_string for x in range(1, options.max_number_sites+1)]
-    
+
+    background_indices_list = [
+        int(index) for index in options.backgrounds_indices.split(",")
+    ]
+    orient_list = [
+        x * options.orientation_string
+        for x in range(1, options.max_number_sites + 1)
+    ]
+
     CTCF_df = pd.read_csv(options.input_tsv_file, sep="\t")
 
     # adding orientation
@@ -98,21 +104,20 @@ def main():
 
     # adding background index
     CTCF_df_with_background = add_background(
-        CTCF_df_with_orientation, 
-        background_indices_list
-        )
+        CTCF_df_with_orientation, background_indices_list
+    )
 
     # adding flank and spacer
     CTCF_df_with_flanks_spacers = add_diff_flanks_and_const_spacer(
-        CTCF_df_with_background, 
-        options.flank_length, 
-        options.flank_length, 
-        options.flank_spacer_sum
-        )
+        CTCF_df_with_background,
+        options.flank_length,
+        options.flank_length,
+        options.flank_spacer_sum,
+    )
 
     CTCF_df_with_flanks_spacers.to_csv(
-            options.output_filename, sep="\t", index=False
-        )
+        options.output_filename, sep="\t", index=False
+    )
 
 
 ################################################################################
