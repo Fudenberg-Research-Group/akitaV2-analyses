@@ -1,6 +1,6 @@
 # Description:
-# This script sets up and submits SLURM jobs for running multiple instances of a mutagenesis analysis script. 
-# It prepares the environment by creating necessary directories and pickling the options, then launches the jobs 
+# This script sets up and submits SLURM jobs for running multiple instances of a mutagenesis analysis script.
+# It prepares the environment by creating necessary directories and pickling the options, then launches the jobs
 # with the specified configurations, including CPU or GPU resources, job naming, and resource constraints.
 #
 # Inputs:
@@ -49,6 +49,7 @@ from akita_utils.h5_utils import job_started
 ################################################################################
 # main
 ################################################################################
+
 
 def main():
     usage = "usage: %prog [options] <params_file> <model_file> <tsv_file>"
@@ -234,17 +235,17 @@ def main():
     for pi in range(options.processes):
         if not options.restart or not job_started(options, pi):
             cmd = 'eval "$(conda shell.bash hook)";'
-            cmd += 'conda activate basenji_py3.9_tf2.15;'
+            cmd += "conda activate basenji_py3.9_tf2.15;"
             cmd += (
-                'python ${SLURM_SUBMIT_DIR}/virtual_insertion_single_mutagenesis.py %s %s %d;'
+                "python ${SLURM_SUBMIT_DIR}/virtual_insertion_single_mutagenesis.py %s %s %d;"
                 % (
                     options_pkl_file,
                     " ".join(args),
                     pi,
                 )
             )
-            cmd += 'conda deactivate;'
-            
+            cmd += "conda deactivate;"
+
             name = "%s_p%d" % (options.name, pi)
             outf = "%s/job%d.out" % (options.out_dir, pi)
             errf = "%s/job%d.err" % (options.out_dir, pi)
@@ -281,4 +282,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

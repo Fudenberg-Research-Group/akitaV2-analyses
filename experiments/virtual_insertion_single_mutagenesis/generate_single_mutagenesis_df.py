@@ -24,7 +24,6 @@
 
 from optparse import OptionParser
 import pandas as pd
-import random
 import pysam
 
 from akita_utils.tsv_utils import (
@@ -39,13 +38,14 @@ from akita_utils.dna_utils import dna_rc
 # main
 ################################################################################
 
+
 def main():
     usage = "usage: %prog [options]"
     parser = OptionParser(usage)
     parser.add_option(
         "-f",
         dest="genome_fasta",
-        default="/project/fudenber_735/genomes/mm10/mm10.fa" ,
+        default="/project/fudenber_735/genomes/mm10/mm10.fa",
         help="Genome FASTA for sequences [Default: %default]",
     )
     parser.add_option(
@@ -96,33 +96,35 @@ def main():
         default="0,1,2,3,4,5,6,7,8,9",
         type="string",
         help="Specify number of background sequences that CTCFs will be inserted into",
-    )    
+    )
     parser.add_option(
         "--output-filename",
         dest="output_filename",
         default="out.tsv",
         help="Filename for output",
-    )    
+    )
 
     (options, args) = parser.parse_args()
 
-    background_indices_list = [int(index) for index in options.backgrounds_indices.split(",")]
+    background_indices_list = [
+        int(index) for index in options.backgrounds_indices.split(",")
+    ]
     orient_list = options.orientation_string.split(",")
     flank_length = options.flank_length
-    
+
     CTCF_df = pd.read_csv(options.input_tsv_file, sep="\t")
     if "Unnamed: 0" in CTCF_df.columns:
         CTCF_df = CTCF_df.drop(columns=["Unnamed: 0"])
-    CTCF_df = CTCF_df.sort_values(by="insertion_SCD", ascending=False)[options.upper_df_range:options.lower_df_range]
+    CTCF_df = CTCF_df.sort_values(by="insertion_SCD", ascending=False)[
+        options.upper_df_range : options.lower_df_range
+    ]
 
     # open genome FASTA
-    genome_open = pysam.Fastafile(
-        options.genome_fasta
-    )
-    
+    genome_open = pysam.Fastafile(options.genome_fasta)
+
     # Initialize a list to store experiment data
     experiment_data = []
-    
+
     # Iterate over each site
     for index, row in CTCF_df.iterrows():
         chrom = row["chrom"]
@@ -131,32 +133,50 @@ def main():
         strand = row["strand"]
         insertion_SCD = row["insertion_SCD"]
         disruption_SCD = row["disruption_SCD"]
-        
+
         # Adjust start and end positions to include flanking regions
         start_adj = start - flank_length
         end_adj = end + flank_length
-    
+
         # Fetch the sequence from the genome
         sequence = genome_open.fetch(chrom, start_adj, end_adj).upper()
-    
+
         # If the site is on the negative strand, reverse complement the sequence
-        if strand == '-':
+        if strand == "-":
             sequence = dna_rc(sequence).upper()
 
         # Iterate over each position in the sequence
         for i in range(len(sequence)):
             original_nucleotide = sequence[i]
             # Mutate the nucleotide to any of the other three nucleotides
-            for mutated_nucleotide in ['A', 'T', 'G', 'C']:
+            for mutated_nucleotide in ["A", "T", "G", "C"]:
                 # Append to the experiment data list, including inherited information
-                experiment_data.append([
-                    chrom, start, end, strand, insertion_SCD, disruption_SCD,
-                    (i - flank_length), original_nucleotide, mutated_nucleotide
-                ])
-        
+                experiment_data.append(
+                    [
+                        chrom,
+                        start,
+                        end,
+                        strand,
+                        insertion_SCD,
+                        disruption_SCD,
+                        (i - flank_length),
+                        original_nucleotide,
+                        mutated_nucleotide,
+                    ]
+                )
+
     # Convert the experiment data list to a DataFrame
-    columns = ["chrom", "start", "end", "strand", "insertion_SCD", "disruption_SCD",
-               "position", "original_nucleotide", "mutated_nucleotide"]
+    columns = [
+        "chrom",
+        "start",
+        "end",
+        "strand",
+        "insertion_SCD",
+        "disruption_SCD",
+        "position",
+        "original_nucleotide",
+        "mutated_nucleotide",
+    ]
     experiment_df = pd.DataFrame(experiment_data, columns=columns)
 
     # Adding insertion-specific columns
@@ -167,20 +187,22 @@ def main():
     )
 
     # adding background index
-    experiment_df_with_background = add_background(experiment_df_with_orientation, 
-                                                background_indices_list
-                                                )
+    experiment_df_with_background = add_background(
+        experiment_df_with_orientation, background_indices_list
+    )
 
     # adding flank and spacer
     experiment_df_with_flanks_spacers = add_diff_flanks_and_const_spacer(
-        experiment_df_with_background, 
-        flank_length, 
-        flank_length, 
-        options.flank_spacer_sum
-        )
+        experiment_df_with_background,
+        flank_length,
+        flank_length,
+        options.flank_spacer_sum,
+    )
 
     # Write to a new TSV file
-    experiment_df_with_flanks_spacers.to_csv(options.output_filename, sep="\t", index=False)
+    experiment_df_with_flanks_spacers.to_csv(
+        options.output_filename, sep="\t", index=False
+    )
 
 
 ################################################################################
