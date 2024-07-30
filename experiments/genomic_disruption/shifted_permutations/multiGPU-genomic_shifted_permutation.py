@@ -22,7 +22,6 @@
 # - shifts: Ensemble prediction shifts (default: "0").
 # - targets_file: File specifying target indexes and labels in table format.
 # - batch_size: Batch size for predictions.
-# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
 #
 # Multi-CPU/GPU Parameters:
 # - cpu: Run without a GPU (default: False).
@@ -137,14 +136,6 @@ def main():
         type="int",
         help="Specify batch size",
     )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
-    )
-
     # multi
     parser.add_option(
         "--cpu",

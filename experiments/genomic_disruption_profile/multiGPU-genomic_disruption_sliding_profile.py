@@ -20,7 +20,6 @@
 # - stats: Comma-separated list of statistics to save (default: "SCD").
 # - targets_file: File specifying target indexes and labels in table format.
 # - batch_size: Batch size for predictions.
-# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
 # - split: Number of chunks to split a bin (default: 10).
 # - bin_size: Size of a bin (default: 2048).
 #
@@ -124,13 +123,6 @@ def main():
         default=None,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     parser.add_option(
         "--split",

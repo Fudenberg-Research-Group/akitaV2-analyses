@@ -21,7 +21,6 @@
 # - -t, --targets_file: File specifying target indexes and labels in table format.
 # - --batch-size: Batch size for processing [Default: %default].
 # - --background-file: File with insertion sequences in FASTA format [Default: %default].
-# - --save-maps: Whether to save all maps in the H5 file [Default: %default].
 # - --cpu: Whether to run without a GPU [Default: %default].
 # - --num_cpus: Number of CPUs to use [Default: %default].
 # - --name: SLURM name prefix [Default: %default].
@@ -38,7 +37,7 @@
 # - Generates job scripts for SLURM and manages their execution.
 #
 # Example command-line usage:
-# python multiGPU_dots_vs_boundary_scenario.py params.pkl model.h5 data.tsv -f /path/to/genome.fa -o results --rc --shifts "1,2" -t targets.tsv --batch-size 32 --background-file backgrounds.fa --save-maps --cpu --num_cpus 4 --name experiment --max_proc 10 -p 4 -q gpu --restart --time 02:00:00 --gres gpu --constraint "[xeon-6130|xeon-2640v4]"
+# python multiGPU_dots_vs_boundary_scenario.py params.pkl model.h5 data.tsv -f /path/to/genome.fa -o results --rc --shifts "1,2" -t targets.tsv --batch-size 32 --background-file backgrounds.fa --cpu --num_cpus 4 --name experiment --max_proc 10 -p 4 -q gpu --restart --time 02:00:00 --gres gpu --constraint "[xeon-6130|xeon-2640v4]"
 
 from optparse import OptionParser
 import os
@@ -131,13 +130,6 @@ def main():
         dest="background_file",
         default="/project/fudenber_735/tensorflow_models/akita/v2/analysis/background_seqs.fa",
         help="file with insertion seqs in fasta format",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
 
     # multi

@@ -21,7 +21,6 @@
 # - shifts: Ensemble prediction shifts (default: "0").
 # - targets_file: File specifying target indexes and labels in table format.
 # - batch_size: Batch size for predictions (default: 4).
-# - save_maps: Whether to save all the maps in an HDF5 file (default: False).
 # - split: Number of chunks to split a bin (default: 10).
 # - bin_size: Size of a bin (default: 2048).
 #
@@ -130,13 +129,6 @@ def main():
         default=4,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     parser.add_option(
         "--split",

@@ -22,7 +22,6 @@
 # - -t, --targets_file: File specifying target indexes and labels in table format.
 # - --batch-size: Batch size for processing [Default: %default].
 # - --background-file: File with insertion sequences in FASTA format [Default: %default].
-# - --save-maps: Whether to save all maps in the H5 file [Default: %default].
 
 # Outputs:
 # - Creates an output directory with the following files:
@@ -31,7 +30,7 @@
 # - Generates log files for process execution.
 #
 # Example command-line usage:
-# python virtual_symmetric_experiment_dots_vs_boundaries.py params.json model.h5 motifs.tsv -f /path/to/genome.fa -m -o results --rc --shifts "1,2" -t targets.tsv --batch-size 16 --background-file backgrounds.fa --save-maps -p 4
+# python virtual_symmetric_experiment_dots_vs_boundaries.py params.json model.h5 motifs.tsv -f /path/to/genome.fa -m -o results --rc --shifts "1,2" -t targets.tsv --batch-size 16 --background-file backgrounds.fa -p 4
 
 from __future__ import print_function
 from optparse import OptionParser
@@ -56,10 +55,7 @@ from akita_utils.seq_gens import symmertic_insertion_seqs_gen
 from akita_utils.df_utils import split_df_equally
 from akita_utils.h5_utils import (
     initialize_stat_output_h5,
-    initialize_maps_output_h5,
-    initialize_maps_output_references,
     write_stat_metrics_to_h5,
-    write_maps_to_h5,
 )
 
 
@@ -152,13 +148,6 @@ def main():
         dest="background_file",
         default=None,
         help="file with insertion seqs in fasta format",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
 
     (options, args) = parser.parse_args()
@@ -306,52 +295,11 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    if options.save_maps:
-        maps_h5_outfile = initialize_maps_output_h5(
-            options.out_dir, model_file, seqnn_model, seq_coords_df
-        )
-        print("maps_h5_outfile initialized")
-
-        if options.processes is not None:
-            if worker_index == 0:
-                refmaps_h5_outfile = initialize_maps_output_references(
-                    general_out_dir,
-                    model_file,
-                    seqnn_model,
-                    num_backgrounds=num_backgrounds,
-                )
-                print("refmaps_h5_outfile initialized")
-
-        else:
-            refmaps_h5_outfile = initialize_maps_output_references(
-                options.out_dir,
-                model_file,
-                seqnn_model,
-                num_backgrounds=num_backgrounds,
-            )
-            print("refmaps_h5_outfile initialized")
-
-    #################################################################
-
     # initialize predictions stream for reference (background) sequences
     refs_stream = seqnn_model.predict(np.array(background_seqs), batch_size=batch_size)
 
     for background_index in range(num_backgrounds):
         bg_prediction = refs_stream[background_index]
-
-        if options.save_maps:
-            # saving reference prediction vectors to the maps_h5_outfile
-            if (len(args) == 5 and worker_index == 0) or len(args) == 3:
-                # save maps for background sequences
-                write_maps_to_h5(
-                    bg_prediction,
-                    refmaps_h5_outfile,
-                    background_index,
-                    head_index,
-                    model_index,
-                    reference=True,
-                )
-                print(f"Maps for reference {background_index} saved")
 
     # initialize predictions stream for alternate (ctcf-inserted) sequences
     preds_stream = stream.PredStreamGen(
@@ -380,22 +328,7 @@ def main():
             stat_metrics=stats,
         )
 
-        if options.save_maps:
-            # save maps for inserted sequences
-            write_maps_to_h5(
-                preds_matrix,
-                maps_h5_outfile,
-                exp_index,
-                head_index,
-                model_index,
-                reference=False,
-            )
-
     stat_h5_outfile.close()
-
-    if options.save_maps:
-        maps_h5_outfile.close()
-
     genome_open.close()
 
 

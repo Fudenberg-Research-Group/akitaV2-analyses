@@ -20,7 +20,6 @@
 # - --shifts: Ensemble prediction shifts [Default: "0"].
 # - -t, --targets-file: File with target indexes and labels [Default: None].
 # - --batch-size: Batch size for predictions [Default: 4].
-# - --save-maps: Save all contact maps in the H5 file [Default: False].
 # - --background-file: File with background sequences in FASTA format [Default: None].
 #
 # Outputs:
@@ -28,7 +27,7 @@
 # - Optionally, HDF5 files with contact maps if specified.
 #
 # Example command-line usage:
-# python virtual_insertion_single_mutagenesis.py params.json model.h5 motifs.tsv -f genome.fa --batch-size 8 --save-maps --out-dir ./results
+# python virtual_insertion_single_mutagenesis.py params.json model.h5 motifs.tsv -f genome.fa --batch-size 8 --out-dir ./results
 
 from optparse import OptionParser
 import json
@@ -131,13 +130,6 @@ def main():
         default=4,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     ## insertion-specific options
     parser.add_option(
@@ -292,9 +284,6 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    # if options.save_maps:
-    # initlize map h5 files
-
     preds_stream = stream.PredStreamGen(
         seqnn_model,
         single_mutagenesis_seqs_gen(
@@ -320,16 +309,8 @@ def main():
             stat_metrics=stats,
         )
 
-        # if options.save_maps:
-        # write maps
-
     stats_out.close()
-
-    # if options.save_maps:
-    #     maps_h5_outfile.close()
-
     genome_open.close()
-
 
 ################################################################################
 # __main__

@@ -18,7 +18,6 @@
 # - --stats: List of stats to save, comma-separated [Default: "SCD"].
 # - -t, --targets-file: File specifying target indexes and labels [Default: None].
 # - --batch-size: Specify batch size [Default: None].
-# - --save-maps: Save all maps in the H5 file [Default: False].
 # - --background-file: File with insertion sequences in FASTA format [Default: None].
 # - --cpu: Run without a GPU [Default: False].
 # - --num_cpus: Number of CPUs to use [Default: 2].
@@ -119,13 +118,6 @@ def main():
         default=None,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     ## insertion-specific options
     parser.add_option(

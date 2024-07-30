@@ -19,7 +19,6 @@
 # - --stats: Comma-separated list of statistics to save [Default: %default].
 # - -t, --targets_file: File specifying target indexes and labels in table format.
 # - --batch-size: Batch size for processing [Default: %default].
-# - --save-maps: Whether to save all maps in the H5 file [Default: %default].
 # - --background-file: File with insertion sequences in FASTA format [Default: %default].
 # - --cpu: Run without a GPU [Default: %default].
 # - --num_cpus: Number of CPUs to use [Default: %default].
@@ -38,7 +37,7 @@
 # - Supports job resumption if partially completed.
 #
 # Example command-line usage:
-# python multiGPU-virtual_insertion_flank_core_compatibility.py params.json model.h5 input_data.tsv -f /path/to/genome.fa -m -o results --rc --shifts "1,2" -t targets.tsv --batch-size 16 --save-maps --cpu --num_cpus 4 --name my_experiment --max_proc 10 -q gpu --time 02:00:00 --gres gpu --constraint "[xeon-6130|xeon-2640v4]"
+# python multiGPU-virtual_insertion_flank_core_compatibility.py params.json model.h5 input_data.tsv -f /path/to/genome.fa -m -o results --rc --shifts "1,2" -t targets.tsv --batch-size 16 --cpu --num_cpus 4 --name my_experiment --max_proc 10 -q gpu --time 02:00:00 --gres gpu --constraint "[xeon-6130|xeon-2640v4]"
 
 from optparse import OptionParser
 import os
@@ -122,13 +121,6 @@ def main():
         default=None,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     ## insertion-specific options
     parser.add_option(

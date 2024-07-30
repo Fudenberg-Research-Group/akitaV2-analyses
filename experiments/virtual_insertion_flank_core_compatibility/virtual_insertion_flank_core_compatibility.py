@@ -18,14 +18,13 @@
 #   - --shifts: Ensemble prediction shifts [Default: 0].
 #   - --targets-file: File specifying target indexes and labels [Default: None].
 #   - --batch-size: Batch size for predictions [Default: 4].
-#   - --save-maps: Boolean to save all maps in HDF5 files [Default: False].
 #   - --background-file: File with background sequences in FASTA format [Default: None].
 #
 # Outputs:
 # - HDF5 file with statistical metrics for each experiment.
 #
 # Example command-line usage:
-# python virtual_insertion_flank_core_compatibility.py params.json model_file.h5 motifs.tsv --genome-fasta genome.fa --out-dir results/ --batch-size 8 --save-maps
+# python virtual_insertion_flank_core_compatibility.py params.json model_file.h5 motifs.tsv --genome-fasta genome.fa --out-dir results/ --batch-size 8
 
 from optparse import OptionParser
 import json
@@ -128,13 +127,6 @@ def main():
         default=4,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     ## insertion-specific options
     parser.add_option(
@@ -289,9 +281,6 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    # if options.save_maps:
-    # initlize map h5 files
-
     preds_stream = stream.PredStreamGen(
         seqnn_model,
         flank_core_compatibility_seqs_gen(
@@ -316,17 +305,9 @@ def main():
             diagonal_offset=2,
             stat_metrics=stats,
         )
-
-        # if options.save_maps:
-        # write maps
-
+        
     stats_out.close()
-
-    # if options.save_maps:
-    #     maps_h5_outfile.close()
-
     genome_open.close()
-
 
 ################################################################################
 # __main__

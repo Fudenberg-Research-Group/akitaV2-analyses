@@ -18,7 +18,6 @@
 # - --shifts: Ensemble prediction shifts [Default: "0"].
 # - -t, --targets-file: File specifying target indexes and labels [Default: None].
 # - --batch-size: Batch size for predictions [Default: 4].
-# - --save-maps: Save all maps in the HDF5 file (for all inserts, backgrounds, and targets) [Default: False].
 # - --background-file: File with insertion sequences in FASTA format [Default: None].
 #
 # Multi-GPU setup:
@@ -27,7 +26,7 @@
 #   - worker_index: Index of the worker process.
 #
 # Example command-line usage:
-# python virtual_number_insertion.py -f genome.fa -m --plot-map -o results -p 4 --rc --stats "SCD" -t targets.tsv --batch-size 8 --save-maps --background-file background.fa <params_file> <model_file> <motifs_file>
+# python virtual_number_insertion.py -f genome.fa -m --plot-map -o results -p 4 --rc --stats "SCD" -t targets.tsv --batch-size 8 --background-file background.fa <params_file> <model_file> <motifs_file>
 
 from optparse import OptionParser
 import json
@@ -130,13 +129,6 @@ def main():
         default=4,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     ## insertion-specific options
     parser.add_option(
@@ -291,9 +283,6 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    # if options.save_maps:
-    # initlize map h5 files
-
     preds_stream = stream.PredStreamGen(
         seqnn_model,
         symmertic_insertion_seqs_gen(
@@ -319,16 +308,8 @@ def main():
             stat_metrics=stats,
         )
 
-        # if options.save_maps:
-        # write maps
-
     stats_out.close()
-
-    # if options.save_maps:
-    #     maps_h5_outfile.close()
-
     genome_open.close()
-
 
 ################################################################################
 # __main__

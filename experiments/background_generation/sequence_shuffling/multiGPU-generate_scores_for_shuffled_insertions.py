@@ -18,7 +18,6 @@
 # - stats: Comma-separated list of statistics to save.
 # - targets_file: File specifying target indexes and labels.
 # - batch_size: Batch size for processing.
-# - save_maps: Option to save all maps in an HDF5 file.
 #
 # SLURM Job Configuration:
 # - cpu: Run without GPU.
@@ -120,13 +119,6 @@ def main():
         default=None,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
 
     # multi

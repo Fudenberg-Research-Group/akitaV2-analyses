@@ -20,7 +20,6 @@
 # - shifts: Ensemble prediction shifts (default: "0").
 # - targets_file: File specifying target indexes and labels in table format.
 # - batch_size: Specify batch size (default: 4).
-# - save_maps: Whether to save all the maps in the h5 file (default: False).
 
 # Output:
 # - Background sequences and prediction maps (if specified) in the output directory.
@@ -243,9 +242,6 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    # if options.save_maps:
-    # initlize map h5 files
-
     preds_stream = stream.PredStreamGen(
         seqnn_model,
         shuffled_insertion_gen(
@@ -271,7 +267,6 @@ def main():
 
     stats_out.close()
     genome_open.close()
-
 
 ################################################################################
 # __main__

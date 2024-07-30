@@ -18,7 +18,6 @@
 # - --stats: Comma-separated list of stats to save [Default: "SCD"].
 # - -t, --targets-file: File specifying target indexes and labels in table format [Default: None].
 # - --batch-size: Specify batch size [Default: None].
-# - --save-maps: Save all the maps in the HDF5 file for all inserts, all backgrounds used, and all targets [Default: False].
 # - --background-file: File with insertion sequences in FASTA format [Default: None].
 #
 # Multi-process and SLURM-specific options:
@@ -118,13 +117,6 @@ def main():
         default=None,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
     ## insertion-specific options
     parser.add_option(

@@ -18,7 +18,6 @@
 # - stats: Comma-separated list of stats to save (default: "SCD").
 # - targets_file: File specifying target indexes and labels in table format.
 # - batch_size: Specify batch size.
-# - save_maps: Whether to save all the maps in the h5 file (default: False).
 # - cpu: Run without a GPU (default: False).
 # - num_cpus: Number of CPUs (default: 2).
 # - name: SLURM name prefix (default: "exp").
@@ -117,13 +116,6 @@ def main():
         default=None,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
 
     # multi
