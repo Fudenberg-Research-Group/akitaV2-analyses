@@ -52,10 +52,7 @@ print(gpus)
 
 from basenji import seqnn, stream, dna_io
 
-from akita_utils.seq_gens import (
-    symmertic_insertion_seqs_gen,
-    reference_seqs_gen,
-)
+from akita_utils.seq_gens import symmertic_insertion_seqs_gen
 from akita_utils.df_utils import split_df_equally
 from akita_utils.h5_utils import (
     initialize_stat_output_h5,
@@ -337,9 +334,7 @@ def main():
     #################################################################
 
     # initialize predictions stream for reference (background) sequences
-    refs_stream = stream.PredStreamGen(
-        seqnn_model, reference_seqs_gen(background_seqs), batch_size
-    )
+    refs_stream = seqnn_model.predict(np.array(background_seqs), batch_size=batch_size)
 
     for background_index in range(num_backgrounds):
         bg_prediction = refs_stream[background_index]
