@@ -47,7 +47,7 @@ from basenji import seqnn
 from akita_utils.background_utils import create_flat_seqs_gen
 from akita_utils.dna_utils import dna_1hot_to_seq
 from akita_utils.utils import ut_dense
-from akita_utils.tsv_utils import split_df_equally
+from akita_utils.df_utils import split_df_equally
 
 
 ################################################################################

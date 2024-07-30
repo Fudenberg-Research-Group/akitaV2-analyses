@@ -44,7 +44,7 @@ from akita_utils.h5_utils import (
     initialize_stat_output_h5,
     write_stat_metrics_to_h5,
 )
-from akita_utils.tsv_utils import split_df_equally
+from akita_utils.df_utils import split_df_equally
 from akita_utils.dna_utils import dna_1hot
 
 

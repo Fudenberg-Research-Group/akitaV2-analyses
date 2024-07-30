@@ -21,7 +21,7 @@ import pandas as pd
 import numpy as np
 from cooltools.lib import numutils
 
-from akita_utils.tsv_utils import (
+from akita_utils.df_utils import (
     add_orientation,
     add_background,
     add_const_flank_and_diff_spacer,

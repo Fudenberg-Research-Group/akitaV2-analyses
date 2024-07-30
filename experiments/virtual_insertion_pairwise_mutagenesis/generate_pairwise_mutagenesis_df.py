@@ -24,7 +24,7 @@ import pandas as pd
 import random
 import pysam
 
-from akita_utils.tsv_utils import (
+from akita_utils.df_utils import (
     add_orientation,
     add_background,
     add_diff_flanks_and_const_spacer,

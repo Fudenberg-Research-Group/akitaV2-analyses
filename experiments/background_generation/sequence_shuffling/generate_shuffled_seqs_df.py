@@ -32,7 +32,7 @@ import itertools
 import pandas as pd
 import bioframe
 import argparse
-from akita_utils.tsv_utils import filter_dataframe_by_column
+from akita_utils.df_utils import filter_dataframe_by_column
 
 
 ################################################################################
