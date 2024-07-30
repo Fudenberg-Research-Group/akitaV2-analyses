@@ -20,7 +20,6 @@
 # - shifts: Ensemble prediction shifts (default: "0").
 # - targets_file: File specifying target indexes and labels in table format.
 # - batch_size: Specify batch size (default: 4).
-# - save_maps: Whether to save all the maps in the h5 file (default: False).
 #
 # Outputs:
 # - Predictions and statistical metrics saved in an HDF5 file.
@@ -39,7 +38,7 @@ import pandas as pd
 import pysam
 from basenji import seqnn, stream
 
-from akita_utils.seq_gens import unshuffled_insertion_gen
+from akita_utils.seq_gens import genomic_insertion_seq_gen
 from akita_utils.h5_utils import (
     initialize_stat_output_h5,
     write_stat_metrics_to_h5,
@@ -128,13 +127,6 @@ def main():
         default=4,
         type="int",
         help="Specify batch size",
-    )
-    parser.add_option(
-        "--save-maps",
-        dest="save_maps",
-        default=False,
-        action="store_true",
-        help="Save all the maps in the h5 file(for all inserts, all backgrounds used, and all targets)",
     )
 
     (options, args) = parser.parse_args()
@@ -251,12 +243,9 @@ def main():
 
     print("stat_h5_outfile initialized")
 
-    # if options.save_maps:
-    # initlize map h5 files
-
     preds_stream = stream.PredStreamGen(
         seqnn_model,
-        unshuffled_insertion_gen(
+        genomic_insertion_seq_gen(
             seq_coords_df, genome_open, ctcf_site_coordinates
         ),
         batch_size,
@@ -277,13 +266,7 @@ def main():
             stat_metrics=stats,
         )
 
-        # if options.save_maps:
-        # write maps
-
     stats_out.close()
-
-    # if options.save_maps:
-    #     maps_h5_outfile.close()
 
     genome_open.close()
 
