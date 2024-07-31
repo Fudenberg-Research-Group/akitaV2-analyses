@@ -5,10 +5,10 @@ This directory contains input data used in various experiments.
 ## Directories:
 
 ### 1. preprocess_boundary_CTCFs/
-Contains a python script and an output TSV with filtered 7,560 mouse (mm10) CTCF sites overlapping TAD boundaries (CTCF sites don’t overlap each other neither reapable elements).
+Contains a python script and an output TSV with filtered 7,560 mouse (mm10) CTCF sites overlapping TAD boundaries (CTCF sites don’t overlap each other neither repeatable elements).
 
 ### 2. preprocess_dot_CTCFs/
-Contains a python script and an output TSV with filtered 36,948 mouse (mm10) CTCF sites overlapping dot anchors, but non-overlapping TAD-boundaries (additionally, CTCF sites don’t overlap each other neither reapable elements).
+Contains a python script and an output TSV with filtered 36,948 mouse (mm10) CTCF sites overlapping dot anchors, but non-overlapping TAD-boundaries (additionally, CTCF sites don’t overlap each other neither repeatable elements).
 
 ### 3. select_strong_CTCFs/
 Contains a python script and an output TSV with filtered 1,500 mouse (mm10) CTCF sites overlapping TAD boundaries: 1,250 with the highest disruption scores in the disruption by permutation experiment and 250 sites selected randomly from the remaining pool.

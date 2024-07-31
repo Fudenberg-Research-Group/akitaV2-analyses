@@ -23,7 +23,7 @@ Includes default plotting configurations and example maps utilized in illustrati
 Includes two notebooks exlaining and visualizing disruption and insertion experiments.
 
 ### 4. input data/
-Consists of data preprocessing scripts and crucial TSV tables required for analysis.
+Consists of data preprocessing scripts and crucial TSV tables containing information about CTCF sites, including their genomic locations. The CTCF sites analyzed do not overlap with each other or with repeatable elements.
 
 ## Contact Information
 
