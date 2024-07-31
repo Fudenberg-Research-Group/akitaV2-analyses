@@ -14,7 +14,7 @@ Please install `akita_utils` before running notebooks or tutorials in this repos
 ## Contents:
 
 ### 1. experiments/
-Contains all experiments conducted during the project. Refer to individual experiment folders for detailed documentation and results.
+Contains all experiments conducted during the project. Refer to individual experiment folders for detailed documentation and results. Each experiment is essentially a unique (sequence generator, TSV table) pair. The TSV file specifies the genomic positions and experiment parameters, while the sequence generator specifies how to construct the sequence for input into AkitaV2.
 
 ### 2. figures/
 Includes default plotting configurations and example maps utilized in illustrations.
@@ -28,10 +28,6 @@ Consists of data preprocessing scripts and crucial TSV tables required for analy
 ## Contact Information
 
 Feedback and questions are appreciated. Please contact us at: fudenber at usc fullstop edu & smaruj at usc fullstop edu.
-
-
-
-
 
 We welcome contributions from the community. Please fork this repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
 
