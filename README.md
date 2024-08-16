@@ -4,7 +4,7 @@ This repository houses scripts and notebooks used to generate and analyze data w
 
 Scripts used for cross-species AkitaV2 training and model weights are available from the [Basenji repository](https://github.com/calico/basenji/tree/master/manuscripts/akita/v2).
 
-Preprint available here: *link to be added very soon*
+Preprint available here: https://www.biorxiv.org/content/10.1101/2024.08.01.606065v1
 
 ## Prerequisites
 
