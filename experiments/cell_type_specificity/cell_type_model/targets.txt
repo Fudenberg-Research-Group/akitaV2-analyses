@@ -1,0 +1,3 @@
+index	identifier	file	clip	sum_stat	description
+0	A	/home1/smaruj/	1	sum	cell_type_A
+1	B	/home1/smaruj/	1	sum	cell_type_B
