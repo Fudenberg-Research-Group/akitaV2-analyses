@@ -207,3 +207,102 @@ def process_sequences(sequences, k):
     vectors = {key: create_kmer_vector(counts[key], k=k)[0] for key in counts}
     pca_results = {key: apply_pca(vectors[key]) for key in vectors}
     return pca_results
+
+
+def read_meme_pwm_as_numpy(filename):
+    pwm_list = []  # List to store PWM rows
+    
+    with open(filename, 'r') as file:
+        in_matrix_section = False
+        
+        for line in file:
+            line = line.strip()
+            
+            # Check if we are reading the PWM matrix
+            if line.startswith("letter-probability matrix"):
+                in_matrix_section = True  # Start reading matrix data
+                continue  # Skip this header line
+            
+            # If we are in the matrix section, process the rows
+            if in_matrix_section and line:
+                pwm_row = [float(value) for value in line.split()]  # Parse values
+                pwm_list.append(pwm_row)  # Append to the PWM list
+            
+            # If we encounter a new MOTIF or the end of file, stop matrix reading
+            if line.startswith("MOTIF") and in_matrix_section:
+                break
+    
+    # Convert the list to a numpy array
+    pwm_array = np.array(pwm_list)
+    
+    return pwm_array
+
+
+# Weighted difference of probabilities
+# based on:
+# https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-015-0767-x
+
+def jensen_shannon_divergence(p, q):
+    """
+    Compute the Jensen-Shannon divergence between two probability distributions p and q
+    """
+    m = 0.5 * (p + q)
+    divergence = 0.5 * np.sum(p * np.log2(np.divide(p, m, out=np.zeros_like(p), where=m != 0)), axis=1) + \
+                 0.5 * np.sum(q * np.log2(np.divide(q, m, out=np.zeros_like(q), where=m != 0)), axis=1)
+    return divergence
+
+def calculate_weight(p, q):
+    """
+    Compute the weight r_ell,a as described in the method.
+    """
+    abs_diff = np.abs(p - q)
+    sum_abs_diff = np.sum(abs_diff, axis=1, keepdims=True)
+    
+    # To avoid division by zero, use np.where to handle p == q
+    weight = np.divide(p - q, sum_abs_diff, out=np.zeros_like(p), where=sum_abs_diff != 0)
+    
+    return weight
+
+def weighted_difference_of_probabilities(pwm1, pwm2):
+    """
+    Compute the weighted difference of probabilities using Jensen-Shannon divergence
+    between two PWM matrices of size (n, 4).
+    
+    Parameters:
+    pwm1: First PWM matrix of shape (n, 4)
+    pwm2: Second PWM matrix of shape (n, 4)
+    
+    Returns:
+    H_ell_a: Weighted heights for each symbol a at each position ell
+    """
+    # Step 1: Calculate Jensen-Shannon divergence H_ell
+    H_ell = jensen_shannon_divergence(pwm1, pwm2)
+    
+    # Step 2: Calculate weights r_ell,a
+    weights = calculate_weight(pwm1, pwm2)
+    
+    # Step 3: Calculate weighted heights H_ell,a
+    H_ell_a = weights * H_ell[:, np.newaxis]  # Broadcasting H_ell to match the shape of weights
+    
+    H_ell_a = np.nan_to_num(H_ell_a, nan=0.0)
+    
+    return H_ell_a
+
+
+def normalize_pwm(pwm, epsilon=1e-10):
+    """
+    Add a small value (epsilon) to the PWM matrix to avoid zeros, then renormalize
+    so that each row sums to 1.
+    
+    Parameters:
+    pwm: Input PWM matrix of shape (n, 4)
+    epsilon: Small value to add to each element in the PWM matrix
+    
+    Returns:
+    normalized_pwm: Renormalized PWM matrix of shape (n, 4)
+    """
+    pwm_with_epsilon = pwm + epsilon
+    row_sums = np.sum(pwm_with_epsilon, axis=1, keepdims=True)
+    normalized_pwm = pwm_with_epsilon / row_sums  # Renormalize each row to sum to 1
+    
+    return normalized_pwm
