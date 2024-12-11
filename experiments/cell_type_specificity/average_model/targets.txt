@@ -1,2 +1,0 @@
-index	identifier	file	clip	sum_stat	description
-0	A_B	/home1/smaruj/	1	sum	average_A_B
