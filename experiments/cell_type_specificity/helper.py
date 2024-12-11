@@ -2,6 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import seaborn as sns
+import pandas as pd
+import cooler
+from cooltools.lib.numutils import observed_over_expected, adaptive_coarsegrain
+from cooltools.lib.numutils import interpolate_bad_singletons, set_diag, interp_nan
+from astropy.convolution import Gaussian2DKernel
+from astropy.convolution import convolve
 
 def plot_hexbin_accumulated(preds, targets, cell_type_idx, cell_type_name, save_path=None):
     # Concatenate all predictions and targets across the 725 test windows
@@ -111,3 +117,62 @@ def calculate_cell_type_differences_and_correlations(preds, targets):
                 correlations[i, j] = np.nan  # No valid values to compute correlation
 
     return correlations
+
+
+def plot_maps_with_labels(maps, labels, vmin=-0.6, vmax=0.6, palette="RdBu_r", width=20, height=5):
+    fig, axes = plt.subplots(1, len(maps), figsize=(width, height))
+
+    for i, (matrix, label) in enumerate(zip(maps, labels)):
+        sns.heatmap(
+            matrix,
+            vmin=vmin,
+            vmax=vmax,
+            cbar=False,
+            cmap=palette,
+            square=True,
+            xticklabels=False,
+            yticklabels=False,
+            ax=axes[i]
+        )
+        axes[i].set_title(label, fontsize=12)  # Set the label above the heatmap
+
+    plt.tight_layout()
+    plt.show()
+    
+
+def get_target(cooler_path, padding, mseq_str, diagonal_offset=2):
+    
+    genome_hic_cool = cooler.Cooler(cooler_path)
+    
+    seq_hic_raw = genome_hic_cool.matrix(balance=True).fetch(mseq_str)
+
+    seq_hic_nan = np.isnan(seq_hic_raw)
+
+    # clip first diagonals and high values
+    clipval = np.nanmedian(np.diag(seq_hic_raw, diagonal_offset))
+    for i in range(-diagonal_offset+1, diagonal_offset):
+        set_diag(seq_hic_raw, clipval, i)
+    seq_hic_raw = np.clip(seq_hic_raw, 0, clipval)
+    seq_hic_raw[seq_hic_nan] = np.nan
+    
+    # adaptively coarsegrain based on raw counts
+    seq_hic_smoothed = adaptive_coarsegrain(
+                        seq_hic_raw,
+                        genome_hic_cool.matrix(balance=False).fetch(mseq_str),
+                        cutoff=2, max_levels=8)
+    seq_hic_nan = np.isnan(seq_hic_smoothed)
+    
+    # local obs/exp
+    seq_hic_obsexp = observed_over_expected(seq_hic_smoothed, ~seq_hic_nan)[0]
+    log_hic_obsexp = np.log(seq_hic_obsexp)
+
+    # crop
+    if padding > 0:
+        log_hic_obsexp = log_hic_obsexp[padding:-padding,:]
+        log_hic_obsexp = log_hic_obsexp[:,padding:-padding]
+
+    # aplying Gaussian Kernel
+    kernel = Gaussian2DKernel(x_stddev=1)
+    kernel_log_hic_obsexp = convolve(log_hic_obsexp, kernel)
+    
+    return kernel_log_hic_obsexp
