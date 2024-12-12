@@ -141,14 +141,13 @@ def load_sequences(fasta_file, start=0, end=-1):
             else:
                 sequence += line.strip()
         if sequence:
-            sequences.append(sequence)
+            sequences.append(sequence[start:end])
     return sequences
-
 
 def load_top_bottom_sequences(fasta_path):
     whole = load_sequences(fasta_path, start=0, end=-1)
     upstream = load_sequences(fasta_path, start=0, end=30)
-    downstream = load_sequences(fasta_path, start=-31, end=-1)
+    downstream = load_sequences(fasta_path, start=-30, end=None)
     return whole, upstream, downstream
 
 
