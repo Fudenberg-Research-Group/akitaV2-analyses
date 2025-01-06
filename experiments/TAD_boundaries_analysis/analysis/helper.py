@@ -5,8 +5,11 @@ import pandas as pd
 import cooler
 from cooltools.lib.numutils import observed_over_expected, adaptive_coarsegrain, set_diag
 from bioframe.io.fileops import read_bigwig
-from akita_utils.dna_utils import dna_1hot
+from akita_utils.dna_utils import dna_1hot, permute_seq_k
 from akita_utils.stats_utils import slide_diagonal_insulation, _extract_centered_window
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 def read_tad_disruption_data():
     df_1 = h5_to_df("/project/fudenber_735/akitaX1_analyses_data/TAD_boundary_disruption/model0_1.h5", average=False)
@@ -79,3 +82,53 @@ def calculate_min_insulation(target_map, window=16, crop_around_center=True, cro
     min_score = np.nanmin(insulation_scores)
     
     return min_score
+
+
+def tad_disruption_seq_gen(seq_coords_df, genome_open):
+    
+    for s in seq_coords_df.itertuples():
+        list_1hot = []
+        window_start = s.window_start
+        window_end = s.window_end
+        chrom = s.chrom
+        rel_disruption_start = s.rel_disruption_start
+        rel_disruption_end =s.rel_disruption_end
+        
+        # wild type
+        wt_seq_1hot = dna_1hot(
+                    genome_open.fetch(chrom, window_start, window_end).upper()
+                )
+        list_1hot.append(wt_seq_1hot)
+    
+        alt_seq_1hot = wt_seq_1hot.copy()
+        permuted_span = permute_seq_k(
+                alt_seq_1hot[rel_disruption_start:rel_disruption_end], k=8
+            )
+        alt_seq_1hot[rel_disruption_start:rel_disruption_end] = permuted_span
+        list_1hot.append(alt_seq_1hot)
+            
+        # yielding first the reference, then the permuted sequence
+        for sequence in list_1hot:
+            yield sequence
+            
+
+def plot_maps_with_labels(maps, labels, name="plot.pdf", vmin=-0.6, vmax=0.6, palette="RdBu_r", width=20, height=5.5):
+    fig, axes = plt.subplots(1, len(maps), figsize=(width, height))
+
+    for i, (matrix, label) in enumerate(zip(maps, labels)):
+        sns.heatmap(
+            matrix,
+            vmin=vmin,
+            vmax=vmax,
+            cbar=False,
+            cmap=palette,
+            square=True,
+            xticklabels=False,
+            yticklabels=False,
+            ax=axes[i]
+        )
+        axes[i].set_title(label, fontsize=20)  # Set the label above the heatmap
+        
+    plt.tight_layout()
+    # plt.savefig(name, format="pdf")
+    plt.show()
