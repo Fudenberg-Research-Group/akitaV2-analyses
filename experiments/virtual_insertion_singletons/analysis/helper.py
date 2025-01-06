@@ -171,6 +171,14 @@ def calculate_gc_content_at_positions(sequences):
     return gc_content_at_positions
 
 
+def count_kmers_total(sequences, k):
+    total_kmer_counts = Counter()
+    for sequence in sequences:
+        k_mers = generate_kmers(sequence, k)
+        total_kmer_counts.update(k_mers)
+    return total_kmer_counts
+
+
 def generate_kmers(sequence, k):
     k_mers = []
     for i in range(len(sequence) - k + 1):
